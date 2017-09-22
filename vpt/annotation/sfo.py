@@ -117,7 +117,7 @@ class SFO:
 
 
 
-###### Unit Testing for Submodular Function Optimization ######
+###### Generate Reference Set using Submodular Function Optimization ######
 
 def load_data(folder, shape):
 

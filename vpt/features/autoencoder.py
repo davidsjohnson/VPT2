@@ -70,7 +70,7 @@ class CAE:
 
 
 ##########################
-### TESTING
+### Training
 ##########################
 
 def generate_dataset(fs):
@@ -170,4 +170,4 @@ if __name__ == "__main__":
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
-    plt.show()
+    plt.savefig("results.pdf")
