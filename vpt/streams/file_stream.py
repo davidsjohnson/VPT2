@@ -28,11 +28,11 @@ class FileStream:
                                 labels = self._annotations[key]
                                 self._fpaths.append(fpath)
                         except Exception as e:
-                            print e
+                            print (e)
                     else:
                         self._fpaths.append(fpath)
 
-        print "# Files Loaded:", len(self._fpaths)
+        print ("# Files Loaded:", len(self._fpaths))
 
 
     def img_generator(self):
@@ -41,9 +41,9 @@ class FileStream:
             try:
                 yield load_depthmap(fname), fname
             except Exception as e:
-                print e
+                print (e)
 
 
     def get_fpaths(self):
-        print "Shape:", len(self._fpaths)
+        print ("Shape:", len(self._fpaths))
         return self._fpaths

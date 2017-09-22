@@ -54,7 +54,7 @@ class RDFSegmentationModel():
             mask = np.load(mask_path)
             orig = np.load(orig_path)
 
-            print "Extracting Features from Image:", i
+            print ("Extracting Features from Image:", i)
             start_time = time.time()
             lh_results = self.extract_features(mask[:, :, s.LH], orig, s.LH_LBL, self._offsets, self._n_samples)
             X_lh.append(lh_results[0])
@@ -69,19 +69,19 @@ class RDFSegmentationModel():
             X_bg.append(bg_results[0])
             y_bg.append(bg_results[1])
 
-            print "LH", np.array(lh_results[0]).shape
-            print "RH", np.array(rh_results[0]).shape
+            print ("LH", np.array(lh_results[0]).shape)
+            print ("RH", np.array(rh_results[0]).shape)
 
             if rh_results[0].shape[0] != 500 or lh_results[0].shape[0] != 500 or rh_results[0].shape[1] != 48 or lh_results[0].shape[1] != 48:
-                print "ERROR::::Invalid array size in file:", mask_path, orig_path
+                print ("ERROR::::Invalid array size in file:", mask_path, orig_path)
 
             end_time = time.time()
             total_time = end_time-start_time
-            print "\tDone: Took %f seconds" % total_time
+            print ("\tDone: Took %f seconds" % total_time)
 
-        print "XLH:", np.array(X_lh).shape
-        print "XRH:", np.array(X_rh).shape
-        print "XBG:", np.array(X_bg).shape
+        print ("XLH:", np.array(X_lh).shape)
+        print ("XRH:", np.array(X_rh).shape)
+        print ("XBG:", np.array(X_bg).shape)
 
         X = np.concatenate((X_lh, X_rh, X_bg))
         y = np.concatenate((y_lh, y_rh, y_bg))
@@ -89,8 +89,8 @@ class RDFSegmentationModel():
         X = X.reshape(X.shape[0]*X.shape[1], X.shape[2])
         y = y.reshape(y.shape[0]*y.shape[1])
 
-        print "X:", X.shape
-        print "y:", y.shape
+        print ("X:", X.shape)
+        print ("y:", y.shape)
 
         # Data set generated
         ##########
@@ -98,7 +98,7 @@ class RDFSegmentationModel():
         ##########
         # Train
         ##########
-        print "Training Hand Segmentation Model"
+        print ("Training Hand Segmentation Model")
         self._clf.fit(X, y)
 
 
@@ -147,7 +147,7 @@ class RDFSegmentationModel():
 
         end_time = time.time()
         total_time = end_time - start_time
-        print "\tTotal Time for Samples: %f seconds: " % total_time
+        print ("\tTotal Time for Samples: %f seconds: " % total_time)
 
         return X, y
 
@@ -166,7 +166,7 @@ class RDFSegmentationModel():
                     elif "orig" in filename:
                         origs.append(os.path.join(root, filename))
                     else:
-                        print "Invalid File Type"
+                        print ("Invalid File Type")
 
             assert len(masks) == len(origs), "Assertion Error: Masks and Originals are not the same lengths"
 
