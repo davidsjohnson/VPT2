@@ -43,7 +43,7 @@ def load_depthmap(fpath, ftype="bin"):
     if data.shape[0] == 480 * 640:
         data = data.reshape((480, 640))
         # data = cv2.flip(data, 1)
-        data = data[80:400, 160:480]
+        data = data[:, 160:480]
     elif data.shape == (480, 640, 3):
         pass
     else:

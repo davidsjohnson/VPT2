@@ -1,9 +1,9 @@
 """
 Functions for submodular function maximization
 """
-import numpy as np
-import matplotlib.pyplot as plt
+
 from sklearn.metrics.pairwise import pairwise_distances as pd
+from keras.models import load_model
 
 from vpt.common import *
 
@@ -119,37 +119,41 @@ class SFO:
 
 ###### Generate Reference Set using Submodular Function Optimization ######
 
-def load_data(folder, shape):
+def generate_encodings(folder, annotation_file, encoder_file):
 
     from vpt.streams.file_stream import FileStream
-    from skimage.transform import resize, rescale
+    from skimage.transform import rescale
 
-    annotations = load_annotations()
+    encoder = load_model(encoder_file)
 
-    fs = FileStream(folder)
+    annotations = load_annotations(annotation_file)
+
+    fs = FileStream(folder, annotations=annotations)
     img_gen = fs.img_generator()
 
     X = []
     files = []
 
     for img, fpath in img_gen:
-        # img = resize(img, shape)
-        img = rescale(img, .25)
-        X.append(img.ravel())
+        img = rescale(img, .50, preserve_range=True)
+
+        x = encoder.predict(img)
+        X.append(x.ravel())
         files.append(fpath)
 
     return np.array(X), np.array(files)
 
 def run():
 
-    folder = "data/posture/p3/"
-    annotations = os.path.join(folder, "annotations.txt")
     p = "p3"
+    folder = "data/posture/p3/"
+    annotation_file = os.path.join(folder, "annotations.txt")
+    encoder_file = "data/cae/encoder_model.h5"
+
     shape = (100, 100)
 
-    X, files = load_data(folder, shape) # What to use for X - scaled down version of image??
+    X, files = generate_encodings(folder, annotation_file, encoder_file) # What to use for X - scaled down version of image??
 
-    # TODO: Probably need to change these but good for now...
     # dist_thresholds = np.linspace(.025, .03, 4)    # Values from analysis of exercise c
     dist_thresholds = [.0267]    # p4 threshold
     n_maxes = [400]

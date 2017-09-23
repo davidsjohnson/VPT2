@@ -3,8 +3,11 @@ from keras.models import Model
 from keras import backend as K
 
 import os
+import warnings
 import numpy as np
 
+import sys
+sys.path.append("./")
 
 class CAE:
 
@@ -40,14 +43,12 @@ class CAE:
 
 
     def fit(self, X_train, X_test, epochs=25, batch_size=50):
-        from keras.callbacks import TensorBoard
 
         self.autoencoder.fit(X_train, X_train,
                         epochs=epochs,
                         batch_size=batch_size,
                         shuffle=True,
-                        validation_data=(X_test, X_test),
-                        callbacks=[TensorBoard(log_dir='/tmp/autoencoder')])
+                        validation_data=(X_test, X_test))
 
 
     def encode_imgs(self, X):
@@ -83,7 +84,10 @@ def generate_dataset(fs):
     X = []
     for img, fname in i_gen:
 
-        img = rescale(img, .25, preserve_range=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            img = rescale(img, .50, preserve_range=True)
+
         img = ip.normalize(img)
 
         X.append(np.expand_dims(img, axis=2))
@@ -94,52 +98,51 @@ def generate_dataset(fs):
 
 if __name__ == "__main__":
 
+    import argparse
 
-    # TODO:  Create Pipeline for loading an encoding and using for SFO
-    # TODO:     Create Model with more Data /  more epochspip
+    import matplotlib
+    matplotlib.use('Agg')
 
-
-    from sklearn.model_selection import train_test_split
     import matplotlib.pyplot as plt
+    from sklearn.model_selection import train_test_split
+
     from vpt.streams.file_stream import FileStream
 
-    folder = "data/posture/p4"
+    # Configure Command Line arguments
+    parser = argparse.ArgumentParser(description="Train Convolutional Autoencoder for image feature extraction.")
+    parser._action_groups.pop()
+    required = parser.add_argument_group('required arguments')
+    required.add_argument("-f", "--folder", type=str, help="Folder containing the participant recording", metavar="<video folder>", required=True)
+    required.add_argument("-e", "--epochs", type=int, help="The number of epochs the training should run for", metavar="<num epochs>", required=True)
+    required.add_argument("-b", "--batchsize", type=int, help="The number of images per batch", metavar="<batch size>", required=True)
+
+    args = parser.parse_args()
+
+    folder = args.folder
+    n_epochs = args.epochs
+    batch_size = args.batchsize
+
+    # Generate dataset and split it
     fs = FileStream(folder, ftype='bin')
-
     X = generate_dataset(fs)
-    X_train, X_test = train_test_split(X, test_size=.2)
+    X_train, X_test = train_test_split(X, test_size=.1)
 
+    # Train the Autoencoder
+    cae = CAE(img_shape=X_train[0].shape)
+    cae.fit(X_train, X_test, epochs=n_epochs, batch_size=batch_size)
 
-    # from keras.datasets import mnist
-    # (X_train, _), (X_test, _) = mnist.load_data()
-    #
-    # X_train = X_train.astype('float32') / 255.
-    # X_test = X_test.astype('float32') / 255.
-    # X_train = np.reshape(X_train, (len(X_train), 28, 28, 1))  # adapt this if using `channels_first` image data format
-    # X_test = np.reshape(X_test, (len(X_test), 28, 28, 1))  # adapt this if using `channels_first` image data format
-    #
-    # X_train = X_train[:1000]
-    # X_test = X_test[:1000]
-
-    img_shape = X_train[0].shape
-    print ("Img Shape:", img_shape)
-    print ("X Test Shape:", X_test.shape)
-
-    cae = CAE(img_shape=img_shape)
-    cae.fit(X_train, X_test, epochs=150, batch_size=200)
-
+    # Save the Model
     try:
         cae.save("data/cae")
     except Exception as e:
         print ("Issue Saving: ", e)
 
-    encoded_imgs = cae.encode_imgs(X_test)
-    decoded_imgs = cae.autoencode_imgs(X_test)
-
-    print ("Encoding Shape:", encoded_imgs.shape)
-
+    ## Test and visualize the results
     n = 10
-    plt.figure(figsize=(20, 4))
+    encoded_imgs = cae.encode_imgs(X_test[:n])
+    decoded_imgs = cae.autoencode_imgs(X_test[:n])
+
+    plt.figure()
     for i in range(n):
 
         print (X_test[i].shape)
@@ -158,9 +161,7 @@ if __name__ == "__main__":
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
-
-    n = 10
-    plt.figure(figsize=(20, 4))
+    plt.figure()
     for i in range(n):
 
         # display encoding
