@@ -98,6 +98,10 @@ def generate_dataset(fs):
 
 if __name__ == "__main__":
 
+    # TODO::::Research Parameters and Network Architecture
+    # TODO::::Test with a classification task for accuracy
+    # TODO::::Add email notification to script
+
     import argparse
 
     import matplotlib

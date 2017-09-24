@@ -4,4 +4,6 @@ vpt/stuff/
 vpt/hand_detection/model_old/
 .git_old_0922
 vpt/notes
-results.pdf
+results*.pdf
+*__pycache__/
+vpt2_py3/
