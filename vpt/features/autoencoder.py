@@ -15,22 +15,22 @@ class CAE:
 
         input_img = Input(shape=img_shape)
 
-        x = Conv2D(100, (5, 5), activation='tanh', padding='same')(input_img)
+        x = Conv2D(200, (5, 5), activation='tanh', padding='same')(input_img)
         x = MaxPooling2D((2, 2), padding='same')(x)
         x = Conv2D(150, (5, 5), activation='tanh', padding='same')(x)
         x = MaxPooling2D((2, 2), padding='same')(x)
-        x = Conv2D(200, (3, 3), activation='tanh', padding="same")(x)
+        x = Conv2D(100, (3, 3), activation='tanh', padding="same")(x)
         encoded = MaxPooling2D((2, 2), padding='same')(x)
 
         print ("shape of encoded", K.int_shape(encoded))
 
         self.encoder = Model(input_img, encoded)
 
-        x = Conv2D(200, (5, 5), activation='tanh', padding='same')(encoded)
+        x = Conv2D(100, (5, 5), activation='tanh', padding='same')(encoded)
         x = UpSampling2D((2, 2,))(x)
         x = Conv2D(150, (5, 5), activation='tanh', padding='same')(x)
         x = UpSampling2D((2, 2,))(x)
-        x = Conv2D(100, (3, 3), activation='tanh', padding="same")(x)
+        x = Conv2D(200, (3, 3), activation='tanh', padding="same")(x)
         x = UpSampling2D((2, 2,))(x)
         decoded = Conv2D(1, (3, 3), activation='tanh', padding='same')(x)
 
@@ -142,31 +142,29 @@ if __name__ == "__main__":
     encoded_imgs = cae.encode_imgs(X_test[:n])
     decoded_imgs = cae.autoencode_imgs(X_test[:n])
 
-    plt.figure()
+    plt.figure(figsize=(20, 8))
     for i in range(n):
 
         print (X_test[i].shape)
 
         # display original
-        ax = plt.subplot(2, n, i+1)
+        ax = plt.subplot(3, n, i + 1)
         plt.imshow(X_test[i].reshape((X_test[i].shape[:-1])))
         plt.gray()
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
         # display reconstruction
-        ax = plt.subplot(2, n, i + 1+ n)
+        ax = plt.subplot(3, n, i + 1 + n)
         plt.imshow(decoded_imgs[i].reshape((decoded_imgs[i].shape[:-1])))
         plt.gray()
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
-    plt.figure()
-    for i in range(n):
 
         # display encoding
-        ax = plt.subplot(1, n, i +1)
-        plt.imshow(encoded_imgs[i].reshape(encoded_imgs.shape[1] * encoded_imgs.shape[2], encoded_imgs.shape[3]).T)
+        ax = plt.subplot(3, n, i + 1 + 2 * n)
+        plt.imshow(encoded_imgs[i].reshape(encoded_imgs.shape[1] * encoded_imgs.shape[2], encoded_imgs.shape[3]))
         plt.gray()
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)

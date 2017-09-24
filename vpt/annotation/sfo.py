@@ -1,6 +1,7 @@
 """
 Functions for submodular function maximization
 """
+import warnings
 
 from sklearn.metrics.pairwise import pairwise_distances as pd
 from keras.models import load_model
@@ -21,9 +22,6 @@ class SFO:
 
         if (self.dists.size == 0):
             self.dists = pairwise_distance(data)
-        # plt.imshow(self.dists)
-        # plt.colorbar()
-        # plt.show()
         return self.sfo_greedy_lazy(self.dists, d, n_max = n_max)
 
 
@@ -119,40 +117,39 @@ class SFO:
 
 ###### Generate Reference Set using Submodular Function Optimization ######
 
-def generate_encodings(folder, annotation_file, encoder_file):
+def generate_encodings(folder, annotations, encoder):
 
     from vpt.streams.file_stream import FileStream
     from skimage.transform import rescale
 
-    encoder = load_model(encoder_file)
-
-    annotations = load_annotations(annotation_file)
-
     fs = FileStream(folder, annotations=annotations)
     img_gen = fs.img_generator()
 
-    X = []
+    imgs = []
     files = []
 
     for img, fpath in img_gen:
-        img = rescale(img, .50, preserve_range=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            img = rescale(img, .50, preserve_range=True)
 
-        x = encoder.predict(img)
-        X.append(x.ravel())
+        img = np.expand_dims(img, axis=2)
+        imgs.append(img)
+
         files.append(fpath)
+
+    imgs = np.array(imgs)
+    print ("Imgs Shape:", imgs.shape)
+
+    X = encoder.predict(imgs)
+    X = X.reshape((X.shape[0], X.shape[1] * X.shape[2] * X.shape[3]))
+    print ("X Shape:", X.shape)
 
     return np.array(X), np.array(files)
 
-def run():
+def run(folder, annotations, encoder):
 
-    p = "p3"
-    folder = "data/posture/p3/"
-    annotation_file = os.path.join(folder, "annotations.txt")
-    encoder_file = "data/cae/encoder_model.h5"
-
-    shape = (100, 100)
-
-    X, files = generate_encodings(folder, annotation_file, encoder_file) # What to use for X - scaled down version of image??
+    X, files = generate_encodings(folder, annotations, encoder) # What to use for X - scaled down version of image??
 
     # dist_thresholds = np.linspace(.025, .03, 4)    # Values from analysis of exercise c
     dist_thresholds = [.0267]    # p4 threshold
@@ -172,11 +169,35 @@ def run():
             print "\t\t", ref_set
             # print "\t\t", files[ref_set]
 
-            np.save(p +"_test_reference_set.npy", files[ref_set])
+            np.save(os.path.join(folder, "reference_set.npy"), files[ref_set])
 
             if len(ref_set) < n:
                 break
 
 if __name__ == "__main__":
+    import argparse
 
-    run()
+
+    parser = argparse.ArgumentParser(description="Generate reference set for hand segmentation annotation.")
+    parser._action_groups.pop()
+    required = parser.add_argument_group('required arguments')
+    required.add_argument("-f", "--folder", type=str, help="Folder containing the participant recording for HS annotation",
+                          metavar="<video folder>", required=True)
+    required.add_argument("-e", "--encoder", type=str, help="Path to the encoder model (.h5 file)",
+                          metavar="<encoder path>", required=True)
+    required.add_argument("-a", "--annotations", type=str, help="File containing posture annotations", metavar="<annotations file>")
+
+    args = parser.parse_args()
+
+    folder = args.folder
+    encoder_file = args.encoder
+
+    if args.annotations == None:
+        annotation_file = os.path.join(folder, "annotations.txt")
+    else:
+        annotation_file = args.annotations
+
+    annotations = load_annotations(annotation_file)
+    encoder = load_model(encoder_file)
+
+    run(folder, annotations, encoder)
