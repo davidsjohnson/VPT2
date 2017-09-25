@@ -162,12 +162,12 @@ def run(folder, annotations, encoder):
 
             ref_set, scores, eval_num, dists = sfo.run(X, d=d, n_max=n)
 
-            print "\n\nReference Set complete with N =", n
-            print "\tDistance Threshold:", str(d)
-            print "\tRef Set Length =", str(len(ref_set))
-            print "\tRef Set:"
-            print "\t\t", ref_set
-            # print "\t\t", files[ref_set]
+            print ("\n\nReference Set complete with N =", n)
+            print ("\tDistance Threshold:", str(d))
+            print ("\tRef Set Length =", str(len(ref_set)))
+            print ("\tRef Set:")
+            print ("\t\t", ref_set)
+            # print ("\t\t", files[ref_set])
 
             np.save(os.path.join(folder, "reference_set.npy"), files[ref_set])
 
