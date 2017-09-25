@@ -81,7 +81,7 @@ def load_annotations(annotation_file, debug=False, error=False):
             if debug:
                 print ("Error Loading Annotation:", e)
 
-    with open(annotation_file, "rb") as af:
+    with open(annotation_file, "r") as af:
         [split_line(line) for line in af.readlines()]
 
     return annotations
