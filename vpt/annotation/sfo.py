@@ -21,7 +21,11 @@ class SFO:
     def run(self, data, d=.125, n_max=500):
 
         if (self.dists.size == 0):
+
             self.dists = pairwise_distance(data)
+            # plt.imshow(self.dists)
+            # plt.colorbar()
+            # plt.show()
         return self.sfo_greedy_lazy(self.dists, d, n_max = n_max)
 
 
@@ -122,7 +126,7 @@ def generate_encodings(folder, annotations, encoder):
     from vpt.streams.file_stream import FileStream
     from skimage.transform import rescale
 
-    fs = FileStream(folder, annotations=annotations)
+    fs = FileStream(folder, annotations=annotations, normalize=True)
     img_gen = fs.img_generator()
 
     imgs = []
@@ -151,9 +155,9 @@ def run(folder, annotations, encoder):
 
     X, files = generate_encodings(folder, annotations, encoder) # What to use for X - scaled down version of image??
 
-    # dist_thresholds = np.linspace(.025, .03, 4)    # Values from analysis of exercise c
-    dist_thresholds = [.0267]    # p4 threshold
-    n_maxes = [400]
+    dist_thresholds = np.linspace(.02, .02225, 9)    # Values from analysis of exercise c
+    # dist_thresholds = [.032]    # p4 threshold
+    n_maxes = [300, 400, 500]
 
     sfo = SFO()
 
@@ -176,6 +180,9 @@ def run(folder, annotations, encoder):
 
 if __name__ == "__main__":
     import argparse
+
+
+    #TODO:::::Create a Parameters File (maybe in JSON)
 
 
     parser = argparse.ArgumentParser(description="Generate reference set for hand segmentation annotation.")
