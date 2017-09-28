@@ -128,7 +128,7 @@ def generate_encodings(folder, annotations, encoder):
     from vpt.streams.file_stream import FileStream
     from skimage.transform import rescale
 
-    fs = FileStream(folder, annotations=annotations, normalize=True, ignore=Trued)
+    fs = FileStream(folder, annotations=annotations, normalize=True, ignore=True)
     img_gen = fs.img_generator()
 
     imgs = []
