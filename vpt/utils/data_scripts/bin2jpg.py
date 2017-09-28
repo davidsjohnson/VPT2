@@ -106,12 +106,12 @@ def load_masks(fs):
         plt.show()
 
 
-def retrieve_color(filelist):
+def retrieve_color(filelist, ref_type="seq"):
 
     basefolder = "/Volumes/SILVER/vpt_data/"
-    newfolder = "data/posture"
+    newfolder = "data/rdf"
 
-
+    print("Copying Files...")
     for f in filelist:
 
         temp = f.split("/")
@@ -121,7 +121,7 @@ def retrieve_color(filelist):
         file += "bmp"
 
         fullpath = os.path.join(basefolder, participant, exercise, "color", file)
-        newpath = os.path.join(newfolder, participant, exercise, "masks")
+        newpath = os.path.join(newfolder, participant, ref_type + "_masks", "og", exercise)
         newfile = os.path.join(newpath, file)
 
         if not os.path.exists(newpath):
@@ -137,7 +137,6 @@ def generate_sequential_filelist(fs, stepsize):
 
     img_gen = fs.img_generator()
     for i, (img, fpath) in enumerate(img_gen):
-
         if i % stepsize == 0:
             filelist.append(fpath)
 
@@ -147,27 +146,12 @@ def generate_sequential_filelist(fs, stepsize):
 
 if __name__ == "__main__":
 
-    # folder = "data/p1/p1a"
-    # fs = FileStream(folder)
-    #
-    # bin2bmp(fs)
 
     folder = "data/posture/p4/"
-    fs = FileStream(folder)
+    annotation_file = "data/posture/p4/annotations.txt"
+    fs = FileStream(folder, annotations=load_annotations(annotation_file, debug=True), ignore=True)
 
     filelist = generate_sequential_filelist(fs, 10)
-    print (filelist)
-    print (filelist.shape)
+    print ("Generated Filelist Shape: ", filelist.shape)
 
-    # create_masks(fs)
-    #
-    # folder = "data/testdata/p4/p4a/masks/masks"
-    # fs = FileStream(folder, ftype="npy")
-    # load_masks(fs)
-
-    # file = "p4_test_reference_set.npy"
-    # fpaths = np.load(file)
-    #
-    # retrieve_color(fpaths)
-
-    #TODO:  FIND A REFERENCE SET TO USE
+    retrieve_color(filelist)

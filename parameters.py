@@ -9,3 +9,23 @@ class Parameters():
         # RDF Parameters
         self.n_estimators = n_estimators
         self.max_depth = max_depth
+
+
+
+# Annotation Parameters #
+#### SFO - Encoder
+#### SFO - Folder
+#### SFO - Distance Threshold
+#### SFO - N Max
+#### CAE - Folder
+#### CAE - Epochs
+#### CAE - Batch Size
+#### CAE - Image Scale
+#### CAE - CAE Architecture
+
+# Hand Segmentation Parameters #
+#### DCF - M
+#### DCF - Radius
+#### RDF - Samples
+#### RDF - N Estimators
+#### RDF - Max Depth
