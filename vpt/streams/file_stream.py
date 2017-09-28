@@ -1,14 +1,16 @@
 from vpt.common import *
+from vpt.settings import *
 
 class FileStream:
 
-    def __init__(self, folder, ftype="bin", annotations=None, normalize=False):
+    def __init__(self, folder, ftype="bin", annotations=None, normalize=False, ignore=False):
 
         self._folder = folder
         self._ftype = ftype
         self._fpaths = []
         self._annotations = annotations
         self._normalize = normalize
+        self._ignore = ignore
 
         self._strip = annotations != None
 
@@ -27,7 +29,11 @@ class FileStream:
                             if self._annotations != None:
                                 key = getFileKey(fpath)
                                 labels = self._annotations[key]
-                                self._fpaths.append(fpath)
+                                if self._ignore:
+                                    if labels[0] in ANNOTATIONS and labels[1] in ANNOTATIONS:
+                                        self._fpaths.append(fpath)
+                                else:
+                                    self._fpaths.append(fpath)
                         except Exception as e:
                             print (e)
                     else:

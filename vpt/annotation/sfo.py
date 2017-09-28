@@ -2,6 +2,8 @@
 Functions for submodular function maximization
 """
 import warnings
+import sys
+sys.path.append("./")
 
 from sklearn.metrics.pairwise import pairwise_distances as pd
 from keras.models import load_model
@@ -126,7 +128,7 @@ def generate_encodings(folder, annotations, encoder):
     from vpt.streams.file_stream import FileStream
     from skimage.transform import rescale
 
-    fs = FileStream(folder, annotations=annotations, normalize=True)
+    fs = FileStream(folder, annotations=annotations, normalize=True, ignore=Trued)
     img_gen = fs.img_generator()
 
     imgs = []
@@ -153,9 +155,10 @@ def generate_encodings(folder, annotations, encoder):
 
 def run(folder, annotations, encoder):
 
+    print ("\nGenerating Encodings...")
     X, files = generate_encodings(folder, annotations, encoder) # What to use for X - scaled down version of image??
 
-    dist_thresholds = np.linspace(.02, .02225, 9)    # Values from analysis of exercise c
+    dist_thresholds = np.linspace(.009, .01, 5)    # Values from analysis of exercise c
     # dist_thresholds = [.032]    # p4 threshold
     n_maxes = [300, 400, 500]
 
@@ -164,9 +167,10 @@ def run(folder, annotations, encoder):
     for d in dist_thresholds:
         for n in n_maxes:
 
+            print ("\n\nRunning SFO w/ d_tresh=%.6f and n_max=%i" % (d, n))
             ref_set, scores, eval_num, dists = sfo.run(X, d=d, n_max=n)
 
-            print ("\n\nReference Set complete with N =", n)
+            print ("Reference Set complete with N =", n)
             print ("\tDistance Threshold:", str(d))
             print ("\tRef Set Length =", str(len(ref_set)))
             print ("\tRef Set:")
