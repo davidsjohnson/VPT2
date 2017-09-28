@@ -131,6 +131,18 @@ def retrieve_color(filelist):
 
         # print fullpath, newfile
 
+def generate_sequential_filelist(fs, stepsize):
+
+    filelist = []
+
+    img_gen = fs.img_generator()
+    for i, (img, fpath) in enumerate(img_gen):
+
+        if i % stepsize == 0:
+            filelist.append(fpath)
+
+    return np.array(filelist)
+
 
 
 if __name__ == "__main__":
@@ -140,13 +152,18 @@ if __name__ == "__main__":
     #
     # bin2bmp(fs)
 
-    folder = "data/testdata/p4/p4a/masks"
-    fs = FileStream(folder, ftype="jpg")
-    create_masks(fs)
+    folder = "data/posture/p4/"
+    fs = FileStream(folder)
 
-    folder = "data/testdata/p4/p4a/masks/masks"
-    fs = FileStream(folder, ftype="npy")
-    load_masks(fs)
+    filelist = generate_sequential_filelist(fs, 10)
+    print (filelist)
+    print (filelist.shape)
+
+    # create_masks(fs)
+    #
+    # folder = "data/testdata/p4/p4a/masks/masks"
+    # fs = FileStream(folder, ftype="npy")
+    # load_masks(fs)
 
     # file = "p4_test_reference_set.npy"
     # fpaths = np.load(file)

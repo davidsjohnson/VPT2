@@ -2,12 +2,13 @@ from vpt.common import *
 
 class FileStream:
 
-    def __init__(self, folder, ftype="bin", annotations=None):
+    def __init__(self, folder, ftype="bin", annotations=None, normalize=False):
 
         self._folder = folder
         self._ftype = ftype
         self._fpaths = []
         self._annotations = annotations
+        self._normalize = normalize
 
         self._strip = annotations != None
 
@@ -39,7 +40,7 @@ class FileStream:
 
         for fname in self._fpaths:
             try:
-                yield load_depthmap(fname), fname
+                yield load_depthmap(fname, normalize=self._normalize), fname
             except Exception as e:
                 print (e)
 

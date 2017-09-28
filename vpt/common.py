@@ -5,10 +5,12 @@ import re
 
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 from vpt.hand_detection.rdf_segmentation_model import RDFSegmentationModel
 
 import vpt.settings as s
+import vpt.utils.image_processing as ip
 
 def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_model_path):
 
@@ -25,7 +27,7 @@ def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_mode
     return rdf_hs
 
 
-def load_depthmap(fpath, ftype="bin"):
+def load_depthmap(fpath, ftype="bin", normalize=False):
     ''' Loads and preforms preprocessing steps to a captured image '''
 
     if fpath[len(fpath)-4:len(fpath)] == ".bin":
@@ -43,11 +45,14 @@ def load_depthmap(fpath, ftype="bin"):
     if data.shape[0] == 480 * 640:
         data = data.reshape((480, 640))
         # data = cv2.flip(data, 1)
-        data = data[:, 160:480]
+        data = data[154:346, 80:560]
     elif data.shape == (480, 640, 3):
         pass
     else:
         raise Exception("Invalid Data", fpath, data.shape)
+
+    if normalize:
+        data = ip.normalize(data)
 
     return data
 

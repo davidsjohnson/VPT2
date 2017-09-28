@@ -13,7 +13,7 @@ class RefSetStream(FileStream):
 
 
     def load_filenames(self):
-        print "# Files Loaded:", self._fpaths.shape
+        print ("# Files Loaded:", self._fpaths.shape)
 
 
     def img_generator(self):
@@ -21,9 +21,9 @@ class RefSetStream(FileStream):
             try:
                 yield load_depthmap(fname), fname
             except Exception as e:
-                print e
+                print (e)
 
 
     def get_fpaths(self):
-        print "Shape:", len(self._fpaths)
+        print ("Shape:", len(self._fpaths))
         return self._fpaths
