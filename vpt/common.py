@@ -49,6 +49,8 @@ def load_depthmap(fpath, ftype="bin", normalize=False):
         # data = cv2.flip(data, 1)
         data = data[154:346, 80:560]
     elif data.shape == (480, 640, 3):
+        data = data[154:346, 80:560, :]
+    elif data.shape == (192, 480, 3):
         pass
     else:
         raise Exception("Invalid Data", fpath, data.shape)

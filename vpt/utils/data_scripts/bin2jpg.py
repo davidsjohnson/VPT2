@@ -41,12 +41,9 @@ def create_masks(fs):
 
     for img, fname in fgen:
 
-        temp = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        temp = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
         maskLH = cv2.inRange(temp, lower_blue, upper_blue)
         maskRH = cv2.inRange(temp, lower_red, upper_red)
-
-        maskLH[:180, :] = 0
-        maskRH[:180, :] = 0
 
         mask = np.zeros_like(img, dtype="uint8")
         mask[:,:,0] = maskLH
@@ -56,33 +53,42 @@ def create_masks(fs):
         newfolder = os.path.join(folder, "masks")
         mk_file = fname[-10:-4] + "_mask.npy"
 
-        og_file = fname[-10:-4] + ".bin"
-
         maskpath = os.path.join(newfolder, mk_file)
 
+        # plt.figure()
+        # plt.subplot(121)
         # plt.imshow(mask)
+        # plt.subplot(122)
+        # plt.imshow(img)
         # plt.show()
+
+        if not os.path.exists(newfolder):
+            os.mkdir(newfolder)
 
         np.save(maskpath, mask)
 
 
 def load_masks(fs):
 
-    base_folder = "data/testdata"
+    base_folder = "data/posture"
 
     fgen = fs.img_generator()
     for mask, fpath in fgen:
 
         temp = fpath.split("/")
         participant = temp[2]
-        exercise = temp[3]
+        exercise = temp[5]
         file_num = temp[-1][:6]
 
         og_path = os.path.join(base_folder, participant, exercise, file_num+".bin")
+        color_path = os.path.join("data/rdf", participant, "cae_masks/og", exercise, file_num+".bmp")
 
-        dmap = load_depthmap(og_path)
-        dmap_rgb = (ip.normalize(dmap) * 255).astype('uint8')
-        dmap_rgb = cv2.cvtColor(dmap_rgb, cv2.COLOR_GRAY2RGB)
+        dmap_rgb = load_depthmap(color_path)
+
+        # dmap_rgb = (ip.normalize(dmap) * 255).astype('uint8')
+        # dmap_rgb = cv2.cvtColor(dmap_rgb, cv2.COLOR_GRAY2RGB)
+
+        dmap_rgb = cv2.cvtColor(dmap_rgb, cv2.COLOR_BGR2RGB)
 
         dmap_rgb[:, :, 0][np.where(mask[:, :, 0] == 255)] = 255
         dmap_rgb[:, :, 1][np.where(mask[:, :, 0] == 255)] = 0
@@ -96,13 +102,11 @@ def load_masks(fs):
         # lh_dmap = np.bitwise_and(dmap, mask[:, :, 0])
         # rh_dmap = np.bitwise_and(dmap, mask[:, :, 1])
 
-        plt.figure()
-        plt.subplot(131)
-        plt.imshow(mask)
-        plt.subplot(132)
+        print(fpath)
+
+        plt.figure(figsize=(20,8))
+        plt.subplot(111)
         plt.imshow(dmap_rgb)
-        plt.subplot(133)
-        plt.imshow(dmap)
         plt.show()
 
 
@@ -143,15 +147,36 @@ def generate_sequential_filelist(fs, stepsize):
     return np.array(filelist)
 
 
+def generate_random_filelist(fs, size):
+
+    filelist = fs.get_fpaths()
+
+    return np.random.choice(filelist, size=size)
+
+
 
 if __name__ == "__main__":
 
+    #
+    # folder = "data/posture/p4/"
+    # annotation_file = "data/posture/p4/annotations.txt"
+    # fs = FileStream(folder, ftype="jpg", annotations=load_annotations(annotation_file, debug=True), ignore=True)
+    # #
+    # # filelist = generate_sequential_filelist(fs, 10)
+    # # filelist = np.load("data/rdf/p4/cae_masks/reference_set_p4_.00625_0929.npy")
+    # filelist = generate_random_filelist(fs, 400)
+    # print ("Generated Filelist Shape: ", filelist.shape)
+    #
+    # retrieve_color(filelist, ref_type="test")
 
-    folder = "data/posture/p4/"
+    # folder = "data/rdf/p4/cae_masks/masks"
+    # annotation_file = "data/posture/p4/annotations.txt"
+    # fs = FileStream(folder, ftype=".jpg", annotations=load_annotations(annotation_file, debug=True), ignore=True)
+    #
+    # create_masks(fs)
+
+    folder = "data/rdf/p4/cae_masks/masks/"
     annotation_file = "data/posture/p4/annotations.txt"
-    fs = FileStream(folder, annotations=load_annotations(annotation_file, debug=True), ignore=True)
+    fs = FileStream(folder, ftype=".npy", annotations=load_annotations(annotation_file, debug=True), ignore=True)
 
-    filelist = generate_sequential_filelist(fs, 10)
-    print ("Generated Filelist Shape: ", filelist.shape)
-
-    retrieve_color(filelist)
+    load_masks(fs)
