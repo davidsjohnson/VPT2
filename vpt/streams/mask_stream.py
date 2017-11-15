@@ -1,9 +1,9 @@
 from vpt.common import *
 from vpt.settings import *
 
-class FileStream:
+class MaskStream:
 
-    def __init__(self, folder, ftype="bin", annotations=None, normalize=False, ignore=False):
+    def __init__(self, folder, ftype="npy", annotations=None, normalize=False, ignore=False):
 
         self._folder = folder
         self._ftype = ftype
@@ -35,7 +35,7 @@ class FileStream:
                                 else:
                                     self._fpaths.append(fpath)
                         except Exception as e:
-                            print ("Error Loading Files:", e)
+                            print (e)
                     else:
                         self._fpaths.append(fpath)
 
@@ -44,9 +44,23 @@ class FileStream:
 
     def img_generator(self):
 
+        og_folder = "data/posture"
+
         for fname in self._fpaths:
+
+            # assumes masks are in rdf folder...TODO: Should probably change to Regex
             try:
-                yield load_depthmap(fname, normalize=self._normalize), fname
+                temp = fname.split("/")
+                participant = temp[2]
+                exercise = temp[5]
+                file_num = temp[-1][:6]
+
+                og_path = os.path.join(og_folder, participant, exercise, file_num + ".bin")
+            except IndexError as e:
+                raise ValueError("Error: Mask Stream initialized with a non mask folder", e)
+
+            try:
+                yield load_depthmap(fname, normalize=False), load_depthmap(og_path, normalize=self._normalize), fname
             except Exception as e:
                 print ("Error Generating Image:", e)
 

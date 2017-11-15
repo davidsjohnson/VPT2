@@ -71,8 +71,11 @@ def bounding_rects(img):
 
     # perform edge detection, used to find the image contours
     edges = cv2.Canny(img, canny_thresh1, canny_thresh2, apertureSize=aperture_size)
-    # _, contours, hierarchy = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)	# OPENCV 3.1
-    contours, hierarchy = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)  # OPENCV 2.4
+    if cv2.__version__ < '3.0':
+        contours, hierarchy = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)  # OPENCV 2.4
+    else:
+        _, contours, hierarchy = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)	# OPENCV 3.1
+
 
     contour_polys = []
     rects = [[0, 0, 0, 0], [0, 0, 0, 0]]  # only storing rectangles for left and right hand

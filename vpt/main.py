@@ -1,17 +1,9 @@
-from vpt.common import *
-
 from sklearn.svm import LinearSVC
-# from sklearn.svm import SVC
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import confusion_matrix
 
-from vpt.streams.file_stream import *
-from vpt.hand_detection.hand_detector import *
-from vpt.hand_detection.hand_generator import *
 from vpt.features.features import *
 import vpt.utils.image_processing as ip
-
-from parameters import *
 import vpt.settings as s
 
 import cv2
@@ -35,7 +27,7 @@ import cv2
 
 def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=False, debug=False, n_slices=20):
 
-    print "Loading Data:", ds_path
+    print ("Loading Data:", ds_path)
 
     if not refreshCLF and os.path.exists(ds_path+".npy"):
 
@@ -59,7 +51,7 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
 
     else:
 
-        print "Status:",
+        print ("Status:",)
         X_lh = []
         y_lh = []
         training_idxs_lh = []
@@ -76,16 +68,17 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
 
                 filenames.append(lh.get_fpath())
 
-                print "{ LH Label:", lh.label(),
+                print ("{ LH Label:", lh.label(), end=" ")
                 y_lh.append(lh.label())
                 X_lh.append(extract_features(lh.get_hand_img(), feature_type, n_slices=n_slices))
 
                 if (participant != "p0" and participant != "p9") and "%ss" % participant in lh.get_fpath():
+                    print("HERE: ", lh.get_fpath())
                     training_idxs_lh.append(i)
                 elif (participant == "p0" and "p0a" in lh.get_fpath() or "p0b" in lh.get_fpath()) or (participant == "p9" and "p9a" in lh.get_fpath() or "p9b" in lh.get_fpath()):
                     training_idxs_lh.append(i)
 
-                print "; RH Label:", rh.label(), "}",
+                print ("; RH Label:", rh.label(), "}", end=" ")
                 y_rh.append(rh.label())
                 X_rh.append(extract_features(rh.get_hand_img(), feature_type, n_slices=n_slices))
 
@@ -106,11 +99,11 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
                 cv2.moveWindow("Mask RH", 200, 500)
                 cv2.waitKey(1)
 
-            print i,
+            print (i,end=" ")
 
-        print
-        print "Retrieved hands"
-        print "Generating and saving dataset..."
+        print ()
+        print ("Retrieved hands")
+        print ("Generating and saving dataset...")
 
         X_lh = np.array(X_lh)
         y_lh = np.array(y_lh)
@@ -127,10 +120,10 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
         training_mask_rh[training_idxs_rh] = True
 
         # save datasets
-        print "LH:", np.array(X_lh).shape, np.array(y_lh).shape, training_mask_lh.shape, training_mask_lh[training_mask_lh==True].shape
-        print "RH:", np.array(X_rh).shape, np.array(y_rh).shape, training_mask_rh.shape, training_mask_rh[training_mask_lh==True].shape
+        print ("LH:", np.array(X_lh).shape, np.array(y_lh).shape, training_mask_lh.shape, training_mask_lh[training_mask_lh==True].shape)
+        print ("RH:", np.array(X_rh).shape, np.array(y_rh).shape, training_mask_rh.shape, training_mask_rh[training_mask_lh==True].shape)
 
-        print
+        print()
 
         filenames = np.array(filenames)
 
@@ -142,26 +135,35 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
     # plt.plot(y_lh[training_mask_lh])
     # plt.show()
 
-    print "Data Set Generated"
-    print
-    print "Starting Classification..."
+    print ("Data Set Generated")
+    print ()
+    print ("Starting Classification...")
     clf_lh = LinearSVC(class_weight="balanced", C=1, dual=False)
     clf_rh = LinearSVC(class_weight="balanced", C=1, dual=False)
 
     # Test Left Hand
     clf_lh.fit(X_lh, y_lh)
-    print "\tLeft Hand Score:", clf_lh.score(X_lh, y_lh)
-    print "\tLeft Hand CV Score:", cross_val_score(clf_lh, X_lh, y_lh, cv=5)
-    if training_mask_lh.size > 0:
+    print ("\tLeft Hand Score:", clf_lh.score(X_lh, y_lh))
+    print ("\tLeft Hand CV Score:", cross_val_score(clf_lh, X_lh, y_lh, cv=5))
+
+
+    if training_mask_lh.max() > 0:
+
+        # plt.plot(training_mask_lh)
+        # plt.show()
+        print(training_mask_lh.max())
+        print(training_mask_lh.min())
+        print(training_mask_lh.shape)
+
         clf_lh.fit(X_lh[training_mask_lh],y_lh[training_mask_lh])
-        print "\tLeft Hand Score (Static):", clf_lh.score(X_lh[~training_mask_lh], y_lh[~training_mask_lh])
+        print ("\tLeft Hand Score (Static):", clf_lh.score(X_lh[~training_mask_lh], y_lh[~training_mask_lh]))
 
         lh_preds = clf_lh.predict(X_lh[~training_mask_lh])
         lh_truth = y_lh[~training_mask_lh]
-        print confusion_matrix(lh_truth, lh_preds)
+        print (confusion_matrix(lh_truth, lh_preds))
 
-        with open(ds_path+".clf_lh.npy", "w+") as f:
-            pickle.dump(clf_lh, f)
+        # with open(ds_path+".clf_lh.npy", "w+") as f:
+        #     pickle.dump(clf_lh, f)
 
         with open(ds_path + ".p_results_lh.txt", "w+") as f:
             f.write("Filename\t\tTruth\tPred\n")
@@ -187,18 +189,18 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
 
     # Test Right Hand
     clf_rh.fit(X_rh, y_rh)
-    print "\tRight Hand Score:", clf_rh.score(X_rh, y_rh)
-    print "\tRight Hand CV Score:", cross_val_score(clf_rh, X_rh, y_rh, cv=5)
-    if training_mask_rh.size > 0:
+    print ("\tRight Hand Score:", clf_rh.score(X_rh, y_rh))
+    print ("\tRight Hand CV Score:", cross_val_score(clf_rh, X_rh, y_rh, cv=5))
+    if training_mask_rh.max() > 0:
         clf_rh.fit(X_rh[training_mask_rh],y_rh[training_mask_rh])
-        print "\tRight Hand Score (Static):", clf_rh.score(X_rh[~training_mask_rh], y_rh[~training_mask_rh])
+        print ("\tRight Hand Score (Static):", clf_rh.score(X_rh[~training_mask_rh], y_rh[~training_mask_rh]))
 
         rh_preds = clf_rh.predict(X_rh[~training_mask_rh])
         rh_truth = y_rh[~training_mask_rh]
-        print confusion_matrix(rh_truth, rh_preds)
+        print (confusion_matrix(rh_truth, rh_preds))
 
-        with open(ds_path+".clf_rh.npy", "w+") as f:
-            pickle.dump(clf_rh, f)
+        # with open(ds_path+".clf_rh.npy", "w+") as f:
+        #     pickle.dump(clf_rh, f)
 
         with open(ds_path + ".p_results_rh.txt", "w+") as f:
             f.write("Filename\t\tTruth\tPred\n")
@@ -221,7 +223,7 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
         np.save("data/analysis/" + ds_path + "_Xrh_1", X_rh_1)
         np.save("data/analysis/" + ds_path + "_Xrh_2", X_rh_2)
 
-    print
+    print ()
 
 
 
@@ -231,14 +233,14 @@ def run_with_rdf(participant, ftype="bin", refreshHD=False, refreshCLF=False, Ms
 
 
     # dataset parameters
-    folder = os.path.join("data", participant)
+    folder = os.path.join("data/posture", participant)
 
     for M in Ms:
         for radius in radii:
             for feature_type in feature_types:
 
                 ds_path = "%s_M%i_rad%0.1f_%s%s" % (participant, M, radius, feature_type, s.note)
-                print ds_path
+                print (ds_path)
                 ds_path = os.path.join(folder, ds_path)
 
                 # segmentation_model_path = "vpt/hand_detection/model/%s_M%i_rad%0.1f" % (participant if participant != "p9" else "p1", M, radius)  # added p9 check for testing with smaller dataset
@@ -246,31 +248,31 @@ def run_with_rdf(participant, ftype="bin", refreshHD=False, refreshCLF=False, Ms
 
                 annotation_file = os.path.join(folder, "annotations.txt")
 
-                print "\nRunning Classification with following parameters:"
-                print
-                print "\tData set Path:", ds_path
-                print "\tAnnotation File:", annotation_file
-                print
-                print "\tDCF M:", M
-                print "\tDCF Radius:", radius
-                print "\tDCF Seg Model:", segmentation_model_path
-                print
-                print "\tFeatures:", feature_type
-                print
-                print
+                print ("\nRunning Classification with following parameters:")
+                print()
+                print ("\tData set Path:", ds_path)
+                print ("\tAnnotation File:", annotation_file)
+                print()
+                print ("\tDCF M:", M)
+                print ("\tDCF Radius:", radius)
+                print ("\tDCF Seg Model:", segmentation_model_path)
+                print()
+                print ("\tFeatures:", feature_type)
+                print()
+                print()
 
-                print "Initializing Hand Pipeline"
+                print ("Initializing Hand Pipeline")
 
                 annotations = load_annotations(annotation_file)
-                print "\tAnnotations Loaded"
+                print ("\tAnnotations Loaded")
 
                 # generate or load model
-                rdf_hs = load_hs_model(participant, M, radius, n_samples , refreshHD, segmentation_model_path)
+                rdf_hs = load_hs_model("p4", M, radius, n_samples , refreshHD, segmentation_model_path)
 
                 fs = FileStream(folder, ftype)
                 hd = HandDetector(rdf_hs)
                 hg = HandGenerator(fs, hd, annotations)
-                print "\tHand Generator Loaded"
+                print ("\tHand Generator Loaded")
                 run(participant, hg, feature_type, ds_path, None, refreshCLF, debug=True)
 
 
@@ -293,29 +295,29 @@ def run_with_bsub(participant, ftype="bin", refreshHD=False, refreshCLF=True):
 
         annotation_file = os.path.join(folder, "annotations.txt")
 
-        print "\nRunning Classification with following parameters:"
-        print "\tHand Detection via Background Subtraction"
-        print
-        print "\tData set Path:", ds_path
-        print "\tAnnotation File:", annotation_file
+        print ("\nRunning Classification with following parameters:")
+        print ("\tHand Detection via Background Subtraction")
+        print()
+        print ("\tData set Path:", ds_path)
+        print ("\tAnnotation File:", annotation_file)
         #                                 TODO: Start Re-viewing papers
         #                                 TODO: Start considering speed vs. accuracy...! (and can I get RDF implmeneted in at least near realtime
-        print
-        print "\tFeatures:", feature_type
-        print
-        print
+        print()
+        print ("\tFeatures:", feature_type)
+        print()
+        print()
 
-        print "Initializing Hand Pipeline"
+        print ("Initializing Hand Pipeline")
 
         annotations = load_annotations(annotation_file)
-        print "\tAnnotations Loaded"
+        print ("\tAnnotations Loaded")
 
         fs = FileStream(folder, ftype, annotations)
         hs = SubSegmentationModel(segmentation_model)
         hs.initialize(background_folder, varThreshold=.3)
         hd = HandDetector(hs)
         hg = HandGenerator(fs, hd, annotations)
-        print "\tHand Generator Loaded"
+        print ("\tHand Generator Loaded")
         run(participant, hg, feature_type, ds_path, None, refreshCLF, debug=True)
 
 
@@ -330,10 +332,10 @@ if __name__ == "__main__":
     s.sensor = "realsense"  #TODO::::Implement RS sensor distortion
     s.note = ""
 
-    refreshHD = False
-    refreshCLF = False
+    refreshHD = True
+    refreshCLF = True
 
-    run_with_rdf(s.participant, ftype="bin", refreshHD=refreshHD, refreshCLF=refreshCLF, Ms=(3,), radii=(.3,))           # ready to run with new params....
+    run_with_rdf(s.participant, ftype="bin", refreshHD=refreshHD, refreshCLF=refreshCLF, Ms=(5,), radii=(.1,), feature_types=("hog",))           # ready to run with new params....
     # run_with_rdf("p9", ftype="bin", refresh=True)  # ready to run with new params....
     # run_with_bsub(s.participant, ftype="bin", refreshHD=refreshHD, refreshCLF=refreshCLF)
     os.system('say "VPT2 Classification Completed"')

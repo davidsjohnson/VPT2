@@ -1,11 +1,11 @@
 import time
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.ensemble import RandomForestClassifier
-import cv2
 
-from vpt.common import *
+from sklearn.ensemble import RandomForestClassifier
+
 import vpt.hand_detection.depth_context_features as dcf
+from vpt.streams.file_stream import *
+
+import vpt.common as c
 import vpt.settings as s
 
 
@@ -22,9 +22,7 @@ class RDFSegmentationModel():
         self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
 
 
-    def train(self, folders):
-
-        mask_paths, orig_paths = self.get_fpaths(folders)
+    def train(self, fs):
 
         n_features = len(self._offsets)
 
@@ -49,31 +47,30 @@ class RDFSegmentationModel():
         X_bg = []
         y_bg = []
 
-        for i, (mask_path, orig_path) in enumerate(zip(mask_paths, orig_paths)):
+        i_gen = fs.img_generator()
 
-            mask = np.load(mask_path)
-            orig = np.load(orig_path)
+        for i, (mask, dmap, fpath) in enumerate(i_gen):
 
             print ("Extracting Features from Image:", i)
             start_time = time.time()
-            lh_results = self.extract_features(mask[:, :, s.LH], orig, s.LH_LBL, self._offsets, self._n_samples)
+            lh_results = self.extract_features(mask[:, :, s.LH], dmap, s.LH_LBL, self._offsets, self._n_samples)
             X_lh.append(lh_results[0])
             y_lh.append(lh_results[1])
 
-            rh_results = self.extract_features(mask[:, :, s.RH], orig, s.RH_LBL, self._offsets, self._n_samples)
+            rh_results = self.extract_features(mask[:, :, s.RH], dmap, s.RH_LBL, self._offsets, self._n_samples)
             X_rh.append(rh_results[0])
             y_rh.append(rh_results[1])
 
             bg_mask = np.logical_not(mask[:, :, s.LH] + mask[:, :, s.RH])         # combine left and right to find background
-            bg_results = self.extract_features(bg_mask, orig, s.BG_LBL, self._offsets, self._n_samples)
+            bg_results = self.extract_features(bg_mask, dmap, s.BG_LBL, self._offsets, self._n_samples)
             X_bg.append(bg_results[0])
             y_bg.append(bg_results[1])
 
             print ("LH", np.array(lh_results[0]).shape)
             print ("RH", np.array(rh_results[0]).shape)
 
-            if rh_results[0].shape[0] != 500 or lh_results[0].shape[0] != 500 or rh_results[0].shape[1] != 48 or lh_results[0].shape[1] != 48:
-                print ("ERROR::::Invalid array size in file:", mask_path, orig_path)
+            # if rh_results[0].shape[0] != 500 or lh_results[0].shape[0] != 500 or rh_results[0].shape[1] != 48 or lh_results[0].shape[1] != 48:
+            #     print ("ERROR::::Invalid array size in file:", fpath, dmap_path)
 
             end_time = time.time()
             total_time = end_time-start_time
@@ -152,22 +149,42 @@ class RDFSegmentationModel():
         return X, y
 
 
-    def get_fpaths(self, folders):
+if __name__ == "__main__":
 
-        origs = []
-        masks = []
+    from vpt.streams.mask_stream import MaskStream
+    from sklearn.metrics import accuracy_score
 
-        for folder in folders:
+    folder = "data/rdf/p4/cae_masks/masks"
+    fs = FileStream(folder, ftype=".npy")
 
-            for root, sub_dirs, files in os.walk(folder):
-                for filename in files:
-                    if "mask" in filename:
-                        masks.append(os.path.join(root, filename))
-                    elif "orig" in filename:
-                        origs.append(os.path.join(root, filename))
-                    else:
-                        print ("Invalid File Type")
+    M = 5
+    radius = .04
+    n_samples = 500
 
-            assert len(masks) == len(origs), "Assertion Error: Masks and Originals are not the same lengths"
+    rdf_hs = RDFSegmentationModel(M, radius, n_samples)
+    rdf_hs.train(fs)
 
-        return np.array(masks), np.array(origs)
+    testdata_folder = "data/rdf/p4/test_masks/masks/p4a"
+    ms_test = MaskStream(testdata_folder, ftype="npy")
+
+    i_gen = ms_test.img_generator()
+
+    avg_accuracy = 0
+    total = 0
+    for i, (mask, dmap, fpath) in enumerate(i_gen):
+
+        p_mask = rdf_hs.generate_mask(dmap)
+        comb = np.vstack((p_mask, mask))
+
+        accuracy = accuracy_score(mask[:,:,:2].ravel(), p_mask[:,:,:2].ravel())
+        avg_accuracy += accuracy
+        print ("Accuracy:", accuracy)
+
+        total += 1
+
+        cv2.imshow("Masks", comb)
+        if cv2.waitKey(1) == 27:
+            break
+
+    cv2.destroyAllWindows()
+    print ("Avg Accuracy:", avg_accuracy/total)

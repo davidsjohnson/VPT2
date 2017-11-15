@@ -81,8 +81,9 @@ def load_masks(fs):
         file_num = temp[-1][:6]
 
         og_path = os.path.join(base_folder, participant, exercise, file_num+".bin")
-        color_path = os.path.join("data/rdf", participant, "cae_masks/og", exercise, file_num+".bmp")
+        color_path = os.path.join("data/rdf", participant, "test_masks/og", exercise, file_num+".bmp")
 
+        print (color_path)
         dmap_rgb = load_depthmap(color_path)
 
         # dmap_rgb = (ip.normalize(dmap) * 255).astype('uint8')
@@ -97,7 +98,6 @@ def load_masks(fs):
         dmap_rgb[:, :, 1][np.where(mask[:, :, 1] == 255)] = 255
         dmap_rgb[:, :, 0][np.where(mask[:, :, 1] == 255)] = 0
         dmap_rgb[:, :, 2][np.where(mask[:, :, 1] == 255)] = 0
-
 
         # lh_dmap = np.bitwise_and(dmap, mask[:, :, 0])
         # rh_dmap = np.bitwise_and(dmap, mask[:, :, 1])
@@ -157,26 +157,26 @@ def generate_random_filelist(fs, size):
 
 if __name__ == "__main__":
 
-    #
-    # folder = "data/posture/p4/"
-    # annotation_file = "data/posture/p4/annotations.txt"
-    # fs = FileStream(folder, ftype="jpg", annotations=load_annotations(annotation_file, debug=True), ignore=True)
+
+    # folder = "data/posture/p1/"
+    # annotation_file = "data/posture/p1/annotations.txt"
+    # fs = FileStream(folder, ftype="bin", annotations=load_annotations(annotation_file, debug=True), ignore=True)
     # #
-    # # filelist = generate_sequential_filelist(fs, 10)
+    # filelist = generate_sequential_filelist(fs, 10)
     # # filelist = np.load("data/rdf/p4/cae_masks/reference_set_p4_.00625_0929.npy")
-    # filelist = generate_random_filelist(fs, 400)
+    # # filelist = generate_random_filelist(fs, 400)
     # print ("Generated Filelist Shape: ", filelist.shape)
+    # #
+    # retrieve_color(filelist, ref_type="seq")
     #
-    # retrieve_color(filelist, ref_type="test")
+    folder = "data/rdf/p1/seq_masks/masks"
+    annotation_file = "data/posture/p1/annotations.txt"
+    fs = FileStream(folder, ftype=".bmp", annotations=load_annotations(annotation_file, debug=True), ignore=True)
 
-    # folder = "data/rdf/p4/cae_masks/masks"
+    create_masks(fs)
+
+    # folder = "data/rdf/p4/test_masks/masks/"
     # annotation_file = "data/posture/p4/annotations.txt"
-    # fs = FileStream(folder, ftype=".jpg", annotations=load_annotations(annotation_file, debug=True), ignore=True)
+    # fs = FileStream(folder, ftype=".npy", annotations=load_annotations(annotation_file, debug=True), ignore=True)
     #
-    # create_masks(fs)
-
-    folder = "data/rdf/p4/cae_masks/masks/"
-    annotation_file = "data/posture/p4/annotations.txt"
-    fs = FileStream(folder, ftype=".npy", annotations=load_annotations(annotation_file, debug=True), ignore=True)
-
-    load_masks(fs)
+    # load_masks(fs)

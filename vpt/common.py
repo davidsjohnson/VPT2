@@ -1,36 +1,37 @@
-import sys
-sys.path.append("./")
-
 import pickle
 import os
 import re
+import warnings
 
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-from vpt.hand_detection.rdf_segmentation_model import RDFSegmentationModel
-
 import vpt.settings as s
 import vpt.utils.image_processing as ip
 
-def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_model_path):
+def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_model_path, masks="cae_masks"):
+    from vpt.hand_detection.rdf_segmentation_model import RDFSegmentationModel
+    from vpt.streams.mask_stream import MaskStream
 
     if os.path.exists(segmentation_model_path) and refresh != True:
-        print ("Loading existing hand segmentation model...")
+        print ("Loading existing hand segmentation model:", segmentation_model_path)
         with open(segmentation_model_path, "r") as f:
             rdf_hs = pickle.load(f)
     else:
         print ("Hand segmentation model doesn't exist: %s.  Loading data and training new model..." % (segmentation_model_path))
-        rdf_hs = RDFSegmentationModel(M, radius, n_samples)
-        rdf_hs.train([os.path.join("data/rdf", participant)])
-        with open(segmentation_model_path, "w+") as f:
-            pickle.dump(rdf_hs, f)
+        rdf_hs =RDFSegmentationModel(M, radius, n_samples)
+        fs = MaskStream(os.path.join("data/rdf", participant, masks, "masks"))
+        rdf_hs.train(fs)
+        # with open(segmentation_model_path, "w+") as f:
+        #     pickle.dump(rdf_hs, f)
     return rdf_hs
 
 
 def load_depthmap(fpath, ftype="bin", normalize=False):
     ''' Loads and preforms preprocessing steps to a captured image '''
+
+    assert s.sensor != "", ("Error: No Sensor set")
 
     if fpath[len(fpath)-4:len(fpath)] == ".bin":
         data = np.fromfile(fpath, 'uint16')
@@ -44,16 +45,33 @@ def load_depthmap(fpath, ftype="bin", normalize=False):
     else:
         raise Exception('File type not supported:', fpath[len(fpath)-4:len(fpath)])
 
-    if data.shape[0] == 480 * 640:
-        data = data.reshape((480, 640))
-        # data = cv2.flip(data, 1)
-        data = data[154:346, 80:560]
-    elif data.shape == (480, 640, 3):
-        data = data[154:346, 80:560, :]
-    elif data.shape == (192, 480, 3):
-        pass
+    #TODO: REFACTOR
+    if s.sensor == "kinect":
+
+        if data.shape[0] == 480 * 640:
+            data = data.reshape((480, 640))
+            # data = cv2.flip(data, 1)
+            data = data[80:400, :]
+        elif data.shape == (192, 480, 3):
+            pass
+        else:
+            raise Exception("Invalid Data", fpath, data.shape)
+
+    elif s.sensor == "realsense":
+        if data.shape[0] == 480 * 640:
+            data = data.reshape((480, 640))
+            # data = cv2.flip(data, 1)
+            data = data[154:346, 80:560]
+        elif data.shape == (480, 640, 3):
+            # data = cv2.flip(data, 1)
+            data = data[154:346, 80:560, :]
+        elif data.shape == (192, 480, 3):
+            pass
+        else:
+            raise Exception("Invalid Data", fpath, data.shape)
+
     else:
-        raise Exception("Invalid Data", fpath, data.shape)
+        raise ValueError("Invalid Sensor Type", s.sensor)
 
     if normalize:
         data = ip.normalize(data)

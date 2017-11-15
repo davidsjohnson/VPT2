@@ -7,15 +7,18 @@ from vpt.hand_detection.hand_generator import *
 import vpt.settings as s
 
 def hog(img, visualise=False):
-
-    img = resize(img, (180,180))
-    return skhog(img, orientations=8, pixels_per_cell=(16,16), cells_per_block=(1,1), visualise=visualise)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        img = resize(img, (180,180))
+        return skhog(img, orientations=8, pixels_per_cell=(16,16), cells_per_block=(1,1), visualise=visualise)
 
 
 def sliced_hog(img, n_slices=20, visualise=False):
-    img = resize(img, (180, 240))
-    cell_size = (img.shape[1], img.shape[0] / float(n_slices))
-    hog = skhog(img, orientations=8, pixels_per_cell=cell_size, cells_per_block=(1,1), visualise=visualise)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        img = resize(img, (180, 240))
+        cell_size = (img.shape[1], img.shape[0] / float(n_slices))
+        hog = skhog(img, orientations=8, pixels_per_cell=cell_size, cells_per_block=(1,1), visualise=visualise)
 
 
     if visualise:
@@ -93,4 +96,4 @@ def extract_features(img, xtype, n_slices=20, visualise=False):
     elif xtype == "hog":
         return hog(img, visualise=visualise)
     else:
-        raise Exception("Invalid Feature Type")
+        raise Exception("Invalid Feature Type:", xtype)
