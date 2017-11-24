@@ -155,7 +155,7 @@ if __name__ == "__main__":
     from sklearn.metrics import accuracy_score
 
     folder = "data/rdf/p4/cae_masks/masks"
-    fs = FileStream(folder, ftype=".npy")
+    fs = MaskStream(folder, ftype=".npy")
 
     M = 5
     radius = .04

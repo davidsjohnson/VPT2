@@ -6,6 +6,7 @@ import shutil
 from vpt.streams.file_stream import *
 from vpt.streams.refset_stream import *
 import vpt.utils.image_processing as ip
+import vpt.settings
 
 import matplotlib.pyplot as plt
 
@@ -34,14 +35,14 @@ def create_masks(fs):
     fgen = fs.img_generator()
 
     lower_red = np.array([0, 200, 200])
-    upper_red = np.array([2, 255, 255])
+    upper_red = np.array([5, 255, 255])
 
     lower_blue = np.array([110, 200, 200])
     upper_blue = np.array([120, 255, 255])
 
     for img, fname in fgen:
 
-        temp = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+        temp = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         maskLH = cv2.inRange(temp, lower_blue, upper_blue)
         maskRH = cv2.inRange(temp, lower_red, upper_red)
 
@@ -63,7 +64,7 @@ def create_masks(fs):
         # plt.show()
 
         if not os.path.exists(newfolder):
-            os.mkdir(newfolder)
+            os.makedirs(newfolder)
 
         np.save(maskpath, mask)
 
@@ -169,9 +170,9 @@ if __name__ == "__main__":
     # #
     # retrieve_color(filelist, ref_type="seq")
     #
-    folder = "data/rdf/p1/seq_masks/masks"
-    annotation_file = "data/posture/p1/annotations.txt"
-    fs = FileStream(folder, ftype=".bmp", annotations=load_annotations(annotation_file, debug=True), ignore=True)
+    vpt.settings.sensor = 'realsense'
+    folder = "data/rdf/generated/p0/error2"
+    fs = FileStream(folder, ftype="bmp")
 
     create_masks(fs)
 

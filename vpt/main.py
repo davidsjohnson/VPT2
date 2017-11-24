@@ -1,6 +1,9 @@
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
+
+from imblearn.over_sampling import SMOTE
 
 from vpt.features.features import *
 import vpt.utils.image_processing as ip
@@ -62,6 +65,7 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
 
         filenames = []
 
+        show = False
         for i, (lh, rh) in enumerate(hg.hand_generator(debug)):
 
             if lh.label() != None and rh.label() != None:
@@ -87,19 +91,30 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
                 elif (participant == "p0" and "p0a" in rh.get_fpath() or "p0b" in rh.get_fpath()) or (participant == "p9" and "p9a" in rh.get_fpath() or "p9b" in rh.get_fpath()):
                     training_idxs_rh.append(i)
 
-                img_norm_lh = ip.normalize(lh.get_hand_img()) * 255
-                img_norm_rh = ip.normalize(rh.get_hand_img()) * 255
-                #
-                cv2.imshow("Left",  img_norm_lh.astype("uint8"))
-                cv2.imshow("Right", img_norm_rh.astype("uint8"))
-                cv2.imshow("Mask LH", lh._mask)
-                cv2.imshow("Mask RH", rh._mask)
-                cv2.moveWindow("Right", 900, 50)
-                cv2.moveWindow("Mask LH", 200, 50)
-                cv2.moveWindow("Mask RH", 200, 500)
-                cv2.waitKey(1)
+
+                if show:
+                    img_norm_lh = ip.normalize(lh.get_hand_img()) * 255
+                    img_norm_rh = ip.normalize(rh.get_hand_img()) * 255
+                    #
+                    cv2.imshow("Left",  img_norm_lh.astype("uint8"))
+                    cv2.imshow("Right", img_norm_rh.astype("uint8"))
+                    cv2.imshow("Mask LH", lh._mask)
+                    cv2.imshow("Mask RH", rh._mask)
+                    cv2.moveWindow("Right", 900, 50)
+                    cv2.moveWindow("Mask LH", 200, 50)
+                    cv2.moveWindow("Mask RH", 200, 500)
+
+                    wait_char = cv2.waitKey(1)
+                    if wait_char == ord('q'):
+                        cv2.destroyAllWindows()
+                        exit()
+                    elif wait_char == 27:
+                        show=False
+                        cv2.destroyAllWindows()
 
             print (i,end=" ")
+
+        cv2.destroyAllWindows()
 
         print ()
         print ("Retrieved hands")
@@ -138,24 +153,22 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
     print ("Data Set Generated")
     print ()
     print ("Starting Classification...")
+
     clf_lh = LinearSVC(class_weight="balanced", C=1, dual=False)
     clf_rh = LinearSVC(class_weight="balanced", C=1, dual=False)
 
-    # Test Left Hand
-    clf_lh.fit(X_lh, y_lh)
+    # #######  Test Left Hand
+    ########################
+    clf_lh.fit(X_lh, X_lh)
     print ("\tLeft Hand Score:", clf_lh.score(X_lh, y_lh))
-    print ("\tLeft Hand CV Score:", cross_val_score(clf_lh, X_lh, y_lh, cv=5))
+    # print ("\tLeft Hand CV Score:", cross_val_score(clf_lh, X_lh, y_lh, cv=5))
 
 
     if training_mask_lh.max() > 0:
 
-        # plt.plot(training_mask_lh)
-        # plt.show()
-        print(training_mask_lh.max())
-        print(training_mask_lh.min())
-        print(training_mask_lh.shape)
+        X_train_sm_lh, y_train_sm_lh = SMOTE(kind='svm').fit_sample(X_lh[training_mask_lh], y_lh[training_mask_lh])
 
-        clf_lh.fit(X_lh[training_mask_lh],y_lh[training_mask_lh])
+        clf_lh.fit(X_train_sm_lh, y_train_sm_lh)
         print ("\tLeft Hand Score (Static):", clf_lh.score(X_lh[~training_mask_lh], y_lh[~training_mask_lh]))
 
         lh_preds = clf_lh.predict(X_lh[~training_mask_lh])
@@ -187,12 +200,16 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
         np.save("data/analysis/" + ds_path + "_Xlh_1", X_lh_1)
         np.save("data/analysis/" + ds_path + "_Xlh_2", X_lh_2)
 
-    # Test Right Hand
+    ########  Test Right Hand
+    ########################
     clf_rh.fit(X_rh, y_rh)
     print ("\tRight Hand Score:", clf_rh.score(X_rh, y_rh))
     print ("\tRight Hand CV Score:", cross_val_score(clf_rh, X_rh, y_rh, cv=5))
     if training_mask_rh.max() > 0:
-        clf_rh.fit(X_rh[training_mask_rh],y_rh[training_mask_rh])
+
+        X_train_sm_rh, y_train_sm_rh = SMOTE(kind='svm').fit_sample(X_rh[training_mask_rh], y_rh[training_mask_rh])
+
+        clf_rh.fit(X_train_sm_rh, y_train_sm_rh)
         print ("\tRight Hand Score (Static):", clf_rh.score(X_rh[~training_mask_rh], y_rh[~training_mask_rh]))
 
         rh_preds = clf_rh.predict(X_rh[~training_mask_rh])
@@ -269,7 +286,7 @@ def run_with_rdf(participant, ftype="bin", refreshHD=False, refreshCLF=False, Ms
                 # generate or load model
                 rdf_hs = load_hs_model("p4", M, radius, n_samples , refreshHD, segmentation_model_path)
 
-                fs = FileStream(folder, ftype)
+                fs = FileStream(folder, ftype, annotations=annotations, ignore=True)
                 hd = HandDetector(rdf_hs)
                 hg = HandGenerator(fs, hd, annotations)
                 print ("\tHand Generator Loaded")
@@ -312,7 +329,7 @@ def run_with_bsub(participant, ftype="bin", refreshHD=False, refreshCLF=True):
         annotations = load_annotations(annotation_file)
         print ("\tAnnotations Loaded")
 
-        fs = FileStream(folder, ftype, annotations)
+        fs = FileStream(folder, ftype, annotations, ignore=True)
         hs = SubSegmentationModel(segmentation_model)
         hs.initialize(background_folder, varThreshold=.3)
         hd = HandDetector(hs)
@@ -335,7 +352,7 @@ if __name__ == "__main__":
     refreshHD = True
     refreshCLF = True
 
-    run_with_rdf(s.participant, ftype="bin", refreshHD=refreshHD, refreshCLF=refreshCLF, Ms=(5,), radii=(.1,), feature_types=("hog",))           # ready to run with new params....
+    run_with_rdf(s.participant, ftype="bin", refreshHD=refreshHD, refreshCLF=refreshCLF, Ms=(3,), radii=(.3,), feature_types=("hog",))           # ready to run with new params....
     # run_with_rdf("p9", ftype="bin", refresh=True)  # ready to run with new params....
     # run_with_bsub(s.participant, ftype="bin", refreshHD=refreshHD, refreshCLF=refreshCLF)
     os.system('say "VPT2 Classification Completed"')

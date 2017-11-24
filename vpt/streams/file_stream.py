@@ -16,6 +16,9 @@ class FileStream:
 
         self.load_filenames()
 
+        if self._ignore:
+            assert annotations, "Stream set to ignore files without valid annotations but no annotations have been provided"
+
 
     def load_filenames(self):
         for root, dirs, files in os.walk(self._folder):

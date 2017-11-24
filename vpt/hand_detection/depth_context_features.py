@@ -61,7 +61,7 @@ def calc_features(depth_map, offsets, sample_mask = None):
     return features
 
 
-def points2pixels(points):
+def points2pixels(points, depth_data=False):
 
     if s.sensor == "kinect":
         f = 525.5
@@ -96,7 +96,10 @@ def points2pixels(points):
     pixels[:, :, 0] = points_x * f + px_d
     pixels[:, :, 1] = points_y * f + py_d
 
-    return pixels[:, :, :2]
+    if not depth_data:
+        return pixels[:, :, :2]
+    else:
+        return pixels[:, :, :2], pixels[:, :, 2:]
 
 
 def pixels2points(depth_map, sample_mask):

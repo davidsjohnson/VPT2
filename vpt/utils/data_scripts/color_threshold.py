@@ -4,6 +4,8 @@ from vpt.common import *
 import vpt.utils.image_processing as ip
 from vpt.streams.file_stream import *
 
+import vpt.settings
+
 
 def nothing(x):
     pass
@@ -55,8 +57,8 @@ def find_color_bounds(fs, participant):
     print("Lower Color Threshold:", l_bound)
     print("Upper Color Threshold:", u_bound)
 
-    np.save("vpt/utils/data_scripts/lower_bounds_threshold_" + participant, l_bound)
-    np.save("vpt/utils/data_scripts/upper_bounds_threshold_" + participant, u_bound)
+    # np.save("vpt/utils/data_scripts/lower_bounds_threshold_" + participant, l_bound)
+    # np.save("vpt/utils/data_scripts/upper_bounds_threshold_" + participant, u_bound)
 
 
 def run(participant, mask_type):
@@ -94,7 +96,9 @@ def run(participant, mask_type):
 if __name__ == "__main__":
 
     # folder = "data/rdf/p1/seq_masks"
-    # fs = FileStream(folder, ".bmp")
-    # find_color_bounds(fs, "p1")
+    folder = "data/rdf/generated/p0"
+    vpt.settings.sensor = 'realsense'
+    fs = FileStream(folder, ".bmp")
+    find_color_bounds(fs, "p0")
     #
-    run("p1", "seq")
+    # run("p1", "seq")
