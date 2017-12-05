@@ -24,8 +24,7 @@ class HandGenerator():
 
                 yield self._detector.detect_hands(img, fpath, labels)
             except ValueError as e:
-                raise e
-                # print ("Error in Hand Generator:", e)
+                print ("Error in Hand Generator:", e)
             except Exception as e:
                 if debug:
                     print ("DEBUG: Error in Hand Generator:", e)

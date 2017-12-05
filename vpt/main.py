@@ -157,48 +157,55 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
     clf_lh = LinearSVC(class_weight="balanced", C=1, dual=False)
     clf_rh = LinearSVC(class_weight="balanced", C=1, dual=False)
 
+    X_train_lh, y_train_lh = SMOTE(kind='svm').fit_sample(X_lh[training_mask_lh], y_lh[training_mask_lh])
+    X_test_lh, y_test_lh = X_lh[~training_mask_lh], y_lh[~training_mask_lh]
+
+    X_train_rh, y_train_rh = SMOTE(kind='svm').fit_sample(X_rh[training_mask_rh], y_lh[training_mask_rh])
+    X_test_rh, y_test_rh = X_rh[~training_mask_rh], y_rh[~training_mask_rh]
+
+
+    X_lh, y_lh = SMOTE(kind='svm').fit_sample(X_lh, y_lh)
+    X_rh, y_rh = SMOTE(kind='svm').fit_sample(X_rh, y_rh)
+
     # #######  Test Left Hand
     ########################
-    clf_lh.fit(X_lh, X_lh)
+    clf_lh.fit(X_lh, y_lh)
     print ("\tLeft Hand Score:", clf_lh.score(X_lh, y_lh))
-    # print ("\tLeft Hand CV Score:", cross_val_score(clf_lh, X_lh, y_lh, cv=5))
-
+    print ("\tLeft Hand CV Score:", cross_val_score(clf_lh, X_lh, y_lh, cv=5))
 
     if training_mask_lh.max() > 0:
 
-        X_train_sm_lh, y_train_sm_lh = SMOTE(kind='svm').fit_sample(X_lh[training_mask_lh], y_lh[training_mask_lh])
+        clf_lh.fit(X_train_lh, y_train_lh)
+        print ("\tLeft Hand Score (Static):", clf_lh.score(X_test_lh, y_test_lh))
 
-        clf_lh.fit(X_train_sm_lh, y_train_sm_lh)
-        print ("\tLeft Hand Score (Static):", clf_lh.score(X_lh[~training_mask_lh], y_lh[~training_mask_lh]))
-
-        lh_preds = clf_lh.predict(X_lh[~training_mask_lh])
-        lh_truth = y_lh[~training_mask_lh]
+        lh_preds = clf_lh.predict(X_test_lh)
+        lh_truth = y_test_lh
         print (confusion_matrix(lh_truth, lh_preds))
 
         # with open(ds_path+".clf_lh.npy", "w+") as f:
         #     pickle.dump(clf_lh, f)
 
-        with open(ds_path + ".p_results_lh.txt", "w+") as f:
-            f.write("Filename\t\tTruth\tPred\n")
-            for i, filename in enumerate(filenames[~training_mask_lh]):
-                f.write("%s\t%i\t%i\n" % (filename, y_lh[~training_mask_lh][i], lh_preds[i]))
+        # with open(ds_path + ".p_results_lh.txt", "w+") as f:
+        #     f.write("Filename\t\tTruth\tPred\n")
+        #     for i, filename in enumerate(filenames[~training_mask_lh]):
+        #         f.write("%s\t%i\t%i\n" % (filename, y_lh[~training_mask_lh][i], lh_preds[i]))
+        #
+        #
+        # X_lh_test_0 = X_lh[~training_mask_lh][np.where(y_lh[~training_mask_lh] == 0)]
+        # X_lh_test_1 = X_lh[~training_mask_lh][np.where(y_lh[~training_mask_lh] == 1)]
+        # X_lh_test_2 = X_lh[~training_mask_lh][np.where(y_lh[~training_mask_lh] == 2)]
+        #
+        # X_lh_0 = X_lh[training_mask_lh][np.where(y_lh[training_mask_lh] == 0)]
+        # X_lh_1 = X_lh[training_mask_lh][np.where(y_lh[training_mask_lh] == 1)]
+        # X_lh_2 = X_lh[training_mask_lh][np.where(y_lh[training_mask_lh] == 2)]
 
-
-        X_lh_test_0 = X_lh[~training_mask_lh][np.where(y_lh[~training_mask_lh] == 0)]
-        X_lh_test_1 = X_lh[~training_mask_lh][np.where(y_lh[~training_mask_lh] == 1)]
-        X_lh_test_2 = X_lh[~training_mask_lh][np.where(y_lh[~training_mask_lh] == 2)]
-
-        X_lh_0 = X_lh[training_mask_lh][np.where(y_lh[training_mask_lh] == 0)]
-        X_lh_1 = X_lh[training_mask_lh][np.where(y_lh[training_mask_lh] == 1)]
-        X_lh_2 = X_lh[training_mask_lh][np.where(y_lh[training_mask_lh] == 2)]
-
-        np.save("data/analysis/" + ds_path + "_test_Xlh_0", X_lh_test_0)
-        np.save("data/analysis/" + ds_path + "_test_Xlh_1", X_lh_test_1)
-        np.save("data/analysis/" + ds_path + "_test_Xlh_2", X_lh_test_2)
-
-        np.save("data/analysis/" + ds_path + "_Xlh_0", X_lh_0)
-        np.save("data/analysis/" + ds_path + "_Xlh_1", X_lh_1)
-        np.save("data/analysis/" + ds_path + "_Xlh_2", X_lh_2)
+        # np.save("data/analysis/" + ds_path + "_test_Xlh_0", X_lh_test_0)
+        # np.save("data/analysis/" + ds_path + "_test_Xlh_1", X_lh_test_1)
+        # np.save("data/analysis/" + ds_path + "_test_Xlh_2", X_lh_test_2)
+        #
+        # np.save("data/analysis/" + ds_path + "_Xlh_0", X_lh_0)
+        # np.save("data/analysis/" + ds_path + "_Xlh_1", X_lh_1)
+        # np.save("data/analysis/" + ds_path + "_Xlh_2", X_lh_2)
 
     ########  Test Right Hand
     ########################
@@ -207,38 +214,36 @@ def run(participant, hg, feature_type, ds_path=None, fl_path=None, refreshCLF=Fa
     print ("\tRight Hand CV Score:", cross_val_score(clf_rh, X_rh, y_rh, cv=5))
     if training_mask_rh.max() > 0:
 
-        X_train_sm_rh, y_train_sm_rh = SMOTE(kind='svm').fit_sample(X_rh[training_mask_rh], y_rh[training_mask_rh])
+        clf_rh.fit(X_train_rh, y_train_rh)
+        print ("\tRight Hand Score (Static):", clf_rh.score(X_test_rh, y_test_rh))
 
-        clf_rh.fit(X_train_sm_rh, y_train_sm_rh)
-        print ("\tRight Hand Score (Static):", clf_rh.score(X_rh[~training_mask_rh], y_rh[~training_mask_rh]))
-
-        rh_preds = clf_rh.predict(X_rh[~training_mask_rh])
-        rh_truth = y_rh[~training_mask_rh]
+        rh_preds = clf_rh.predict(X_test_rh)
+        rh_truth = y_test_rh
         print (confusion_matrix(rh_truth, rh_preds))
 
         # with open(ds_path+".clf_rh.npy", "w+") as f:
         #     pickle.dump(clf_rh, f)
 
-        with open(ds_path + ".p_results_rh.txt", "w+") as f:
-            f.write("Filename\t\tTruth\tPred\n")
-            for i, filename in enumerate(filenames[~training_mask_rh]):
-                f.write("%s\t%i\t%i\n" % (filename, y_rh[~training_mask_rh][i], rh_preds[i]))
-
-        X_rh_test_0 = X_rh[~training_mask_rh][np.where(y_rh[~training_mask_rh] == 0)]
-        X_rh_test_1 = X_rh[~training_mask_rh][np.where(y_rh[~training_mask_rh] == 1)]
-        X_rh_test_2 = X_rh[~training_mask_rh][np.where(y_rh[~training_mask_rh] == 2)]
-
-        X_rh_0 = X_rh[training_mask_rh][np.where(y_rh[training_mask_rh] == 0)]
-        X_rh_1 = X_rh[training_mask_rh][np.where(y_rh[training_mask_rh] == 1)]
-        X_rh_2 = X_rh[training_mask_rh][np.where(y_rh[training_mask_rh] == 2)]
-
-        np.save("data/analysis/" + ds_path + "_test_Xrh_0", X_rh_test_0)
-        np.save("data/analysis/" + ds_path + "_test_Xrh_1", X_rh_test_1)
-        np.save("data/analysis/" + ds_path + "_test_Xrh_2", X_rh_test_2)
-
-        np.save("data/analysis/" + ds_path + "_Xrh_0", X_rh_0)
-        np.save("data/analysis/" + ds_path + "_Xrh_1", X_rh_1)
-        np.save("data/analysis/" + ds_path + "_Xrh_2", X_rh_2)
+        # with open(ds_path + ".p_results_rh.txt", "w+") as f:
+        #     f.write("Filename\t\tTruth\tPred\n")
+        #     for i, filename in enumerate(filenames[~training_mask_rh]):
+        #         f.write("%s\t%i\t%i\n" % (filename, y_rh[~training_mask_rh][i], rh_preds[i]))
+        #
+        # X_rh_test_0 = X_rh[~training_mask_rh][np.where(y_rh[~training_mask_rh] == 0)]
+        # X_rh_test_1 = X_rh[~training_mask_rh][np.where(y_rh[~training_mask_rh] == 1)]
+        # X_rh_test_2 = X_rh[~training_mask_rh][np.where(y_rh[~training_mask_rh] == 2)]
+        #
+        # X_rh_0 = X_rh[training_mask_rh][np.where(y_rh[training_mask_rh] == 0)]
+        # X_rh_1 = X_rh[training_mask_rh][np.where(y_rh[training_mask_rh] == 1)]
+        # X_rh_2 = X_rh[training_mask_rh][np.where(y_rh[training_mask_rh] == 2)]
+        #
+        # np.save("data/analysis/" + ds_path + "_test_Xrh_0", X_rh_test_0)
+        # np.save("data/analysis/" + ds_path + "_test_Xrh_1", X_rh_test_1)
+        # np.save("data/analysis/" + ds_path + "_test_Xrh_2", X_rh_test_2)
+        #
+        # np.save("data/analysis/" + ds_path + "_Xrh_0", X_rh_0)
+        # np.save("data/analysis/" + ds_path + "_Xrh_1", X_rh_1)
+        # np.save("data/analysis/" + ds_path + "_Xrh_2", X_rh_2)
 
     print ()
 
@@ -284,7 +289,7 @@ def run_with_rdf(participant, ftype="bin", refreshHD=False, refreshCLF=False, Ms
                 print ("\tAnnotations Loaded")
 
                 # generate or load model
-                rdf_hs = load_hs_model("p4", M, radius, n_samples , refreshHD, segmentation_model_path)
+                rdf_hs = load_hs_model(s.participant, M, radius, n_samples , refreshHD, segmentation_model_path)
 
                 fs = FileStream(folder, ftype, annotations=annotations, ignore=True)
                 hd = HandDetector(rdf_hs)
@@ -349,7 +354,7 @@ if __name__ == "__main__":
     s.sensor = "realsense"  #TODO::::Implement RS sensor distortion
     s.note = ""
 
-    refreshHD = True
+    refreshHD = False
     refreshCLF = True
 
     run_with_rdf(s.participant, ftype="bin", refreshHD=refreshHD, refreshCLF=refreshCLF, Ms=(3,), radii=(.3,), feature_types=("hog",))           # ready to run with new params....

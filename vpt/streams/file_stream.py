@@ -21,7 +21,7 @@ class FileStream:
 
 
     def load_filenames(self):
-        for root, dirs, files in os.walk(self._folder):
+        for root, dirs, files in os.walk(self._folder, followlinks=True):
             for fname in files:
                 if self._ftype in fname and "background" not in root:  # exclude folders with background in name
                     fpath = os.path.join(root, fname)
@@ -37,6 +37,8 @@ class FileStream:
                                         self._fpaths.append(fpath)
                                 else:
                                     self._fpaths.append(fpath)
+                        except KeyError as e:
+                            print("Key Error: Key {} doesn't exist in annotations".format(e))
                         except Exception as e:
                             print ("Error Loading Files:", e)
                     else:

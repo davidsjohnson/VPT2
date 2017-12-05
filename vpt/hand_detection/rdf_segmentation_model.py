@@ -29,15 +29,6 @@ class RDFSegmentationModel():
         ########
         # Generate the Dataset for training
         ########
-        # X_lh = np.array([[]]).reshape((0, n_features))
-        # y_lh = np.array([])
-        #
-        # X_rh = np.array([[]]).reshape((0, n_features))
-        # y_rh = np.array([])
-        #
-        # X_bg = np.array([[]]).reshape((0, n_features))
-        # y_bg = np.array([])
-
         X_lh = []
         y_lh = []
 
@@ -97,6 +88,7 @@ class RDFSegmentationModel():
         ##########
         print ("Training Hand Segmentation Model")
         self._clf.fit(X, y)
+        print("Training Complete")
 
 
     def generate_mask(self, depth_map):

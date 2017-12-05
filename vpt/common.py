@@ -16,15 +16,15 @@ def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_mode
 
     if os.path.exists(segmentation_model_path) and refresh != True:
         print ("Loading existing hand segmentation model:", segmentation_model_path)
-        with open(segmentation_model_path, "r") as f:
+        with open(segmentation_model_path, "rb") as f:
             rdf_hs = pickle.load(f)
     else:
         print ("Hand segmentation model doesn't exist: %s.  Loading data and training new model..." % (segmentation_model_path))
         rdf_hs =RDFSegmentationModel(M, radius, n_samples)
         fs = MaskStream(os.path.join("data/rdf", participant, masks, "masks"))
         rdf_hs.train(fs)
-        # with open(segmentation_model_path, "w+") as f:
-        #     pickle.dump(rdf_hs, f)
+        with open(segmentation_model_path, "wb+") as f:
+            pickle.dump(rdf_hs, f)
     return rdf_hs
 
 
@@ -105,10 +105,14 @@ def load_annotations(annotation_file, debug=False, error=False):
     def split_line(line):
         data = line.strip("\n").split("\t")
         try:
-            annotations[getFileKey(data[0])] = [data[1], data[2] ]
+            key = getFileKey(data[0])
+            annotations[key] = [data[1], data[2] ]
         except ValueError as e:
             if debug:
                 print ("Error Loading Annotation:", e)
+        except IndexError as e:
+            if debug:
+                print("IndexError while loading annotations: verify file is seperated using tabs\n", data)
 
     with open(annotation_file, "r") as af:
         [split_line(line) for line in af.readlines()]

@@ -16,15 +16,40 @@ def hog(img, visualise=False):
 def sliced_hog(img, n_slices=20, visualise=False):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        img = resize(img, (180, 240))
+        img = resize(img, (120, 90))
         cell_size = (img.shape[1], img.shape[0] / float(n_slices))
         hog = skhog(img, orientations=8, pixels_per_cell=cell_size, cells_per_block=(1,1), visualise=visualise)
 
 
     if visualise:
-        return hog[0]*hog[0], hog[1]
+        return hog[0], hog[1]
     else:
-        return hog*hog
+        return hog
+
+
+def shonv(img, num_bins = 10, num_slices = 10):
+
+    img = ip.normalize(img)
+
+    gx = cv2.Sobel(img, cv2.CV_64F, 1, 0)
+    gy = cv2.Sobel(img, cv2.CV_64F, 0, 1)
+
+    azi = np.arctan2(gy, gx)
+    azi[azi < 0] += 2 * np.pi
+    zen = np.arctan(np.sqrt(gx * gx + gy * gy))
+
+    slice_size = img.shape[0] // num_slices
+
+    hists = []
+    for i in range(0, num_slices):
+        azi_slice = azi[i * slice_size:i * slice_size + slice_size - 1, :]
+        zen_slice = zen[i * slice_size:i * slice_size + slice_size - 1, :]
+
+        H, xedges, yedges = np.histogram2d(azi_slice.ravel(), zen_slice.ravel(), bins=num_bins)
+
+        hists.append(np.hstack(H))
+
+    return np.hstack(hists)
 
 # def sliced_hog(img, n_slices=20):
 #     ''' Horizontally sliced histograms of Oriented Gradients '''
@@ -95,5 +120,7 @@ def extract_features(img, xtype, n_slices=20, visualise=False):
         return sliced_hog(img, n_slices=n_slices, visualise=visualise)
     elif xtype == "hog":
         return hog(img, visualise=visualise)
+    elif xtype == 'shonv':
+        return shonv(img)
     else:
         raise Exception("Invalid Feature Type:", xtype)
