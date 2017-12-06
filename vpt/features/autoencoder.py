@@ -9,6 +9,8 @@ import numpy as np
 import sys
 sys.path.append("./")
 
+from vpt.common import *
+
 class CAE:
 
     def __init__(self, img_shape):
@@ -63,10 +65,10 @@ class CAE:
         return self.autoencoder.predict(X)
 
 
-    def save(self, base_folder):
+    def save(self, base_folder, prefix=""):
 
-        self.encoder.save(os.path.join(base_folder, "encoder_model.h5"))
-        self.autoencoder.save(os.path.join(base_folder, "cae_model.h5"))
+        self.encoder.save(os.path.join(base_folder, prefix + "encoder_model.h5"))
+        self.autoencoder.save(os.path.join(base_folder, prefix + "cae_model.h5"))
 
 
 
@@ -95,9 +97,7 @@ def generate_dataset(fs):
     return np.array(X)
 
 
-
-if __name__ == "__main__":
-
+def main():
     # TODO::::Research Parameters and Network Architecture
     # TODO::::Test with a classification task for accuracy
     # TODO::::Add email notification to script
@@ -116,9 +116,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train Convolutional Autoencoder for image feature extraction.")
     parser._action_groups.pop()
     required = parser.add_argument_group('required arguments')
-    required.add_argument("-f", "--folder", type=str, help="Folder containing the participant recording", metavar="<video folder>", required=True)
-    required.add_argument("-e", "--epochs", type=int, help="The number of epochs the training should run for", metavar="<num epochs>", required=True)
-    required.add_argument("-b", "--batchsize", type=int, help="The number of images per batch", metavar="<batch size>", required=True)
+    required.add_argument("-f", "--folder", type=str, help="Folder containing the participant recording",
+                          metavar="<video folder>", required=True)
+    required.add_argument("-e", "--epochs", type=int, help="The number of epochs the training should run for",
+                          metavar="<num epochs>", required=True)
+    required.add_argument("-b", "--batchsize", type=int, help="The number of images per batch", metavar="<batch size>",
+                          required=True)
 
     args = parser.parse_args()
 
@@ -139,7 +142,7 @@ if __name__ == "__main__":
     try:
         cae.save("data/cae")
     except Exception as e:
-        print ("Issue Saving: ", e)
+        print("Issue Saving: ", e)
 
     ## Test and visualize the results
     n = 10
@@ -148,8 +151,7 @@ if __name__ == "__main__":
 
     plt.figure(figsize=(20, 8))
     for i in range(n):
-
-        print (X_test[i].shape)
+        print(X_test[i].shape)
 
         # display original
         ax = plt.subplot(3, n, i + 1)
@@ -165,7 +167,6 @@ if __name__ == "__main__":
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
-
         # display encoding
         ax = plt.subplot(3, n, i + 1 + 2 * n)
         plt.imshow(encoded_imgs[i].reshape(encoded_imgs.shape[1] * encoded_imgs.shape[2], encoded_imgs.shape[3]))
@@ -174,3 +175,9 @@ if __name__ == "__main__":
         ax.get_yaxis().set_visible(False)
 
     plt.savefig("results.pdf")
+
+
+
+if __name__ == "__main__":
+
+    main()
