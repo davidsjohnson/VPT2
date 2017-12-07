@@ -22,7 +22,7 @@ class RDFSegmentationModel():
         self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
 
 
-    def train(self, fs):
+    def generate_dataset(self, ms):
 
         n_features = len(self._offsets)
 
@@ -80,15 +80,14 @@ class RDFSegmentationModel():
         print ("X:", X.shape)
         print ("y:", y.shape)
 
-        # Data set generated
-        ##########
+        return X, y
 
-        ##########
-        # Train
-        ##########
-        print ("Training Hand Segmentation Model")
+    def fit(self, X, y):
         self._clf.fit(X, y)
-        print("Training Complete")
+
+
+    def predict(self, X):
+        return self._clf.predict(X)
 
 
     def generate_mask(self, depth_map):
@@ -146,6 +145,9 @@ if __name__ == "__main__":
     from vpt.streams.mask_stream import MaskStream
     from sklearn.metrics import accuracy_score
 
+    s.participant = "p4"
+    s.sensor = "realsense"
+
     folder = "data/rdf/p4/cae_masks/masks"
     fs = MaskStream(folder, ftype=".npy")
 
@@ -154,7 +156,14 @@ if __name__ == "__main__":
     n_samples = 500
 
     rdf_hs = RDFSegmentationModel(M, radius, n_samples)
-    rdf_hs.train(fs)
+    print("Extracting Data...")
+    X,y = rdf_hs.generate_dataset(fs)
+    print("Done")
+    print()
+    print("Training RDF...")
+    rdf_hs.fit(X, y)
+    print("Done")
+    print()
 
     testdata_folder = "data/rdf/p4/test_masks/masks/p4a"
     ms_test = MaskStream(testdata_folder, ftype="npy")
@@ -175,7 +184,7 @@ if __name__ == "__main__":
         total += 1
 
         cv2.imshow("Masks", comb)
-        if cv2.waitKey(1) == 27:
+        if cv2.waitKey(1) == ord('q'):
             break
 
     cv2.destroyAllWindows()
