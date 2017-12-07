@@ -44,33 +44,34 @@ class RDFSegmentationModel():
 
             print ("Extracting Features from Image:", i)
             start_time = time.time()
-            lh_results = self.extract_features(mask[:, :, s.LH], dmap, s.LH_LBL, self._offsets, self._n_samples)
-            X_lh.append(lh_results[0])
-            y_lh.append(lh_results[1])
 
+            lh_results = self.extract_features(mask[:, :, s.LH], dmap, s.LH_LBL, self._offsets, self._n_samples)
             rh_results = self.extract_features(mask[:, :, s.RH], dmap, s.RH_LBL, self._offsets, self._n_samples)
-            X_rh.append(rh_results[0])
-            y_rh.append(rh_results[1])
 
             bg_mask = np.logical_not(mask[:, :, s.LH] + mask[:, :, s.RH])         # combine left and right to find background
             bg_results = self.extract_features(bg_mask, dmap, s.BG_LBL, self._offsets, self._n_samples)
-            X_bg.append(bg_results[0])
-            y_bg.append(bg_results[1])
 
             print ("LH", np.array(lh_results[0]).shape)
             print ("RH", np.array(rh_results[0]).shape)
 
-            assert np.array(lh_results[0]).shape == np.array(bg_results[0]).shape, \
-                "Invalid Shapes for file {} - LH: {}, BG {}".format(fpath, np.array(lh_results[0]).shape, np.array(bg_results[0]).shape)
+            # check if masks ok
+            if np.array(lh_results[0]).shape != (self._n_samples, len(self._offsets)):
+                print("Invalid LH Mask in file {}".format(fpath))
+                continue
 
-            assert np.array(rh_results[0]).shape == np.array(bg_results[0]).shape, \
-                "Invalid Shapes for file {} - RH: {}, BG {}".format(fpath, np.array(rh_results[0]).shape, np.array(bg_results[0]).shape)
+            if np.array(rh_results[0]).shape != (self._n_samples, len(self._offsets)):
+                print("Invalid RH Mask in file {}".format(fpath))
+                continue
 
-            assert np.array(lh_results[0]).shape == np.array(rh_results[0]).shape, \
-                "Invalid Shapes for file {} - LH: {}, RH {}".format(fpath, np.array(lh_results[0]).shape, np.array(rh_results[0]).shape)
+            # append if masks ok
+            X_lh.append(lh_results[0])
+            y_lh.append(lh_results[1])
 
-            # if rh_results[0].shape[0] != 500 or lh_results[0].shape[0] != 500 or rh_results[0].shape[1] != 48 or lh_results[0].shape[1] != 48:
-            #     print ("ERROR::::Invalid array size in file:", fpath, dmap_path)
+            X_rh.append(rh_results[0])
+            y_rh.append(rh_results[1])
+
+            X_bg.append(bg_results[0])
+            y_bg.append(bg_results[1])
 
             end_time = time.time()
             total_time = end_time-start_time
@@ -157,7 +158,7 @@ if __name__ == "__main__":
     s.participant = "p4"
     s.sensor = "realsense"
 
-    folder = "data/rdf/p4/cae_masks/masks"
+    folder = "data/rdf/p4"
     ms = MaskStream(folder, ftype=".npy")
 
     M = 5
