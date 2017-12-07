@@ -97,4 +97,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # currently using default RDF parameters
-    main(args.participant, args.folder, args.annotations, n_epochs=args.epochs, batch_size=args.batchsize, refreshData=True)
+    main(args.participant, args.folder, args.annotations, n_epochs=args.epochs, batch_size=args.batchsize, refreshData=False)
