@@ -61,19 +61,24 @@ def main(participant, folder, annotation_file, n_epochs, batch_size,
 
     print("Training CAEs...")
     X_train_lh, X_test_lh, X_train_rh, X_test_rh = train_test_split(X_lh, X_rh, test_size=.1)
-
     cae_lh, cae_rh = CAE(img_shape=X_lh[0].shape), CAE(img_shape=X_rh[0].shape)
-    cae_lh.fit(X_train_lh, X_test_lh, epochs=n_epochs, batch_size=batch_size)
-    cae_rh.fit(X_train_rh, X_test_rh, epochs=n_epochs, batch_size=batch_size)
-    print("Done")
-    print()
 
-    print("Saving CAEs...")
+    cae_lh.fit(X_train_lh, X_test_lh, epochs=n_epochs, batch_size=batch_size)
+    print("Saving LH CAE...")
     try:
         cae_lh.save("data/cae", prefix="lh_{}_".format(datetime.date.today().strftime("%Y%m%d")))
+    except Exception as e:
+        print("Issue Saving LH: ", e)
+
+    cae_rh.fit(X_train_rh, X_test_rh, epochs=n_epochs, batch_size=batch_size)
+    print("Saving RH CAE...")
+    try:
         cae_rh.save("data/cae", prefix="rh_{}_".format(datetime.date.today().strftime("%Y%m%d")) )
     except Exception as e:
         print("Issue Saving: ", e)
+    print("Done")
+    print()
+
     print("Done")
     print()
 
@@ -97,4 +102,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # currently using default RDF parameters
-    main(args.participant, args.folder, args.annotations, n_epochs=args.epochs, batch_size=args.batchsize, refreshData=True)
+    main(args.participant, args.folder, args.annotations, n_epochs=args.epochs, batch_size=args.batchsize, refreshData=False)
