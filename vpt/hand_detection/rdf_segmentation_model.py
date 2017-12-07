@@ -38,7 +38,7 @@ class RDFSegmentationModel():
         X_bg = []
         y_bg = []
 
-        i_gen = fs.img_generator()
+        i_gen = ms.img_generator()
 
         for i, (mask, dmap, fpath) in enumerate(i_gen):
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     s.sensor = "realsense"
 
     folder = "data/rdf/p4/cae_masks/masks"
-    fs = MaskStream(folder, ftype=".npy")
+    ms = MaskStream(folder, ftype=".npy")
 
     M = 5
     radius = .04
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
     rdf_hs = RDFSegmentationModel(M, radius, n_samples)
     print("Extracting Data...")
-    X,y = rdf_hs.generate_dataset(fs)
+    X, y = rdf_hs.generate_dataset(ms)
     print("Done")
     print()
     print("Training RDF...")
