@@ -51,6 +51,7 @@ class MaskStream:
             # assumes masks are in rdf folder...TODO: Should probably change to Regex
             try:
                 temp = fname.split("/")
+                print("FILENNAME:", temp)
                 participant = temp[2]
                 exercise = temp[5]
                 file_num = temp[-1][:6]
