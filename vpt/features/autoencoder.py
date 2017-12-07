@@ -17,22 +17,22 @@ class CAE:
 
         input_img = Input(shape=img_shape)
 
-        x = Conv2D(200, (5, 5), activation='tanh', padding='same')(input_img)
+        x = Conv2D(100, (5, 5), activation='tanh', padding='same')(input_img)
         x = MaxPooling2D((2, 2), padding='same')(x)
-        x = Conv2D(150, (5, 5), activation='tanh', padding='same')(x)
+        x = Conv2D(75, (5, 5), activation='tanh', padding='same')(x)
         x = MaxPooling2D((2, 2), padding='same')(x)
-        x = Conv2D(100, (3, 3), activation='tanh', padding="same")(x)
+        x = Conv2D(50, (3, 3), activation='tanh', padding="same")(x)
         encoded = MaxPooling2D((2, 2), padding='same')(x)
 
         print ("shape of encoded", K.int_shape(encoded))
 
         self.encoder = Model(input_img, encoded)
 
-        x = Conv2D(100, (5, 5), activation='tanh', padding='same')(encoded)
+        x = Conv2D(50, (5, 5), activation='tanh', padding='same')(encoded)
         x = UpSampling2D((2, 2,))(x)
-        x = Conv2D(150, (5, 5), activation='tanh', padding='same')(x)
+        x = Conv2D(75, (5, 5), activation='tanh', padding='same')(x)
         x = UpSampling2D((2, 2,))(x)
-        x = Conv2D(200, (3, 3), activation='tanh', padding="same")(x)
+        x = Conv2D(100, (3, 3), activation='tanh', padding="same")(x)
         x = UpSampling2D((2, 2,))(x)
         decoded = Conv2D(1, (3, 3), activation='tanh', padding='same')(x)
 
