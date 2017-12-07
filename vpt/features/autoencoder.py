@@ -43,6 +43,8 @@ class CAE:
 
         self.autoencoder.compile(optimizer='sgd', loss='mean_squared_error')
 
+        self.fit = False
+
 
     def fit(self, X_train, X_test, epochs=25, batch_size=50):
 

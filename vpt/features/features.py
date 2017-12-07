@@ -26,6 +26,9 @@ def sliced_hog(img, n_slices=20, visualise=False):
     else:
         return hog
 
+def cae(X, encoder):
+    return encoder.predict(X)
+
 
 def shonv(img, num_bins = 10, num_slices = 10):
 
@@ -114,7 +117,8 @@ def generate_data_set(hands, xtype="shog", training=True):
     return np.array(X), np.array(y)
 
 
-def extract_features(img, xtype, n_slices=20, visualise=False):
+def extract_features(img, xtype, n_slices=20, visualise=False, hand="lh"):
+
 
     if xtype == "shog":
         return sliced_hog(img, n_slices=n_slices, visualise=visualise)

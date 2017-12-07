@@ -22,7 +22,8 @@ def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_mode
         print ("Hand segmentation model doesn't exist: %s.  Loading data and training new model..." % (segmentation_model_path))
         rdf_hs =RDFSegmentationModel(M, radius, n_samples)
         fs = MaskStream(os.path.join("data/rdf", participant, masks, "masks"))
-        rdf_hs.train(fs)
+        X, y = rdf_hs.generate_dataset(fs)
+        rdf_hs.fit(X,y)
         with open(segmentation_model_path, "wb+") as f:
             pickle.dump(rdf_hs, f)
     return rdf_hs
