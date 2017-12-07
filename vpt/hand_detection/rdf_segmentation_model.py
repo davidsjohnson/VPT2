@@ -60,6 +60,15 @@ class RDFSegmentationModel():
             print ("LH", np.array(lh_results[0]).shape)
             print ("RH", np.array(rh_results[0]).shape)
 
+            assert np.array(lh_results[0]).shape == np.array(bg_results[0]).shape, \
+                "Invalid Shapes - LH: {}, BG {}".format(np.array(lh_results[0]).shape, np.array(bg_results[0]).shape)
+
+            assert np.array(rh_results[0]).shape == np.array(bg_results[0]).shape, \
+                "Invalid Shapes - RH: {}, BG {}".format(np.array(rh_results[0]).shape, np.array(bg_results[0]).shape)
+
+            assert np.array(lh_results[0]).shape == np.array(rh_results[0]).shape, \
+                "Invalid Shapes - LH: {}, RH {}".format(np.array(lh_results[0]).shape, np.array(rh_results[0]).shape)
+
             # if rh_results[0].shape[0] != 500 or lh_results[0].shape[0] != 500 or rh_results[0].shape[1] != 48 or lh_results[0].shape[1] != 48:
             #     print ("ERROR::::Invalid array size in file:", fpath, dmap_path)
 
