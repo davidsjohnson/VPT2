@@ -18,8 +18,8 @@ def generate_dataset(hg, size=(120, 96)):
     X_lh, X_rh = [], []
 
     for lh, rh in h_gen:
-        img_lh = ip.normalize(resize(lh.get_hand_img(), size))
-        img_rh = ip.normalize(resize(rh.get_hand_img(), size))
+        img_lh = ip.normalize(resize(lh.get_hand_img(), size, preserve_range=True))
+        img_rh = ip.normalize(resize(rh.get_hand_img(), size, preserve_range=True))
         X_lh.append(np.expand_dims(img_lh, axis=2))
         X_rh.append(np.expand_dims(img_rh, axis=2))
 
@@ -33,19 +33,17 @@ def main(participant, folder, annotation_file, n_epochs, batch_size,
     s.participant = participant
     s.sensor = sensor
 
-    annotations = load_annotations(annotation_file)
-    segmentation_model_path = "data/rdf/trainedmodels/%s_M%i_rad%0.1f" % (s.participant, M, radius)
-
-    rdf_hs = load_hs_model(s.participant, M, radius, n_samples, refreshHD, segmentation_model_path)
-
-    fs = FileStream(folder, ftype, annotations=annotations, ignore=True)
-    hd = HandDetector(rdf_hs)
-    hg = HandGenerator(fs, hd, annotations)
-
-
     print("Generating Hand Dataset...")
-
     if refreshData:
+        annotations = load_annotations(annotation_file)
+        segmentation_model_path = "data/rdf/trainedmodels/%s_M%i_rad%0.1f" % (s.participant, M, radius)
+
+        rdf_hs = load_hs_model(s.participant, M, radius, n_samples, refreshHD, segmentation_model_path)
+
+        fs = FileStream(folder, ftype, annotations=annotations, ignore=True)
+        hd = HandDetector(rdf_hs)
+        hg = HandGenerator(fs, hd, annotations)
+
         print("\tGenerating new hand data")
         X_lh, X_rh = generate_dataset(hg)
         np.save("data/posture/all/X_lh.npy", X_lh)
