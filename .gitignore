@@ -7,3 +7,5 @@ vpt/notes
 results*.pdf
 *__pycache__/
 vpt2_py3/
+*.wav
+core*
