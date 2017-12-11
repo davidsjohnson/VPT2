@@ -1,4 +1,4 @@
-from keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D
+from keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Reshape
 from keras.models import Model
 from keras import backend as K
 
@@ -19,20 +19,24 @@ class CAE:
 
         x = Conv2D(100, (5, 5), activation='tanh', padding='same')(input_img)
         x = MaxPooling2D((2, 2), padding='same')(x)
-        x = Conv2D(75, (5, 5), activation='tanh', padding='same')(x)
+        x = Conv2D(150, (5, 5), activation='tanh', padding='same')(x)
         x = MaxPooling2D((2, 2), padding='same')(x)
-        x = Conv2D(50, (3, 3), activation='tanh', padding="same")(x)
-        encoded = MaxPooling2D((2, 2), padding='same')(x)
+        x = Conv2D(200, (3, 3), activation='tanh', padding="same")(x)
+        x = MaxPooling2D((2,2), padding='same' )(x)
+        encoded = Flatten()(x)
+        encoded = Dense(300, activation='softmax')(encoded)
+
 
         print ("shape of encoded", K.int_shape(encoded))
-
+        print("shape of x", K.int_shape(x))
         self.encoder = Model(input_img, encoded)
 
-        x = Conv2D(50, (5, 5), activation='tanh', padding='same')(encoded)
+        # x = Reshape((img_shape[0]//8,img_shape[1]//8, 200),)(x)
+        x = Conv2D(200, (3, 3), activation='tanh', padding='same')(x)
         x = UpSampling2D((2, 2,))(x)
-        x = Conv2D(75, (5, 5), activation='tanh', padding='same')(x)
+        x = Conv2D(150, (5, 5), activation='tanh', padding='same')(x)
         x = UpSampling2D((2, 2,))(x)
-        x = Conv2D(100, (3, 3), activation='tanh', padding="same")(x)
+        x = Conv2D(100, (5, 5), activation='tanh', padding="same")(x)
         x = UpSampling2D((2, 2,))(x)
         decoded = Conv2D(1, (3, 3), activation='tanh', padding='same')(x)
 
@@ -42,8 +46,6 @@ class CAE:
         # self.decoder = Model(encoded, decoded_layer(encoded))
 
         self.autoencoder.compile(optimizer='sgd', loss='mean_squared_error')
-
-        self.fit = False
 
 
     def fit(self, X_train, X_test, epochs=25, batch_size=50):
