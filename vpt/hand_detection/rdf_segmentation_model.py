@@ -7,6 +7,7 @@ from vpt.streams.file_stream import *
 
 import vpt.common as c
 import vpt.settings as s
+from vpt.streams.mask_stream3 import MaskStream3
 
 
 class RDFSegmentationModel():
@@ -19,7 +20,7 @@ class RDFSegmentationModel():
 
         self._offsets = dcf.generate_feature_offsets(self._M, self._radius)
 
-        self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth)
+        self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=-1)
 
 
     def generate_dataset(self, ms):
@@ -44,6 +45,8 @@ class RDFSegmentationModel():
 
             print ("Extracting Features from Image:", i)
             start_time = time.time()
+
+            print("mask shape", mask.shape, fpath)
 
             lh_results = self.extract_features(mask[:, :, s.LH], dmap, s.LH_LBL, self._offsets, self._n_samples)
             rh_results = self.extract_features(mask[:, :, s.RH], dmap, s.RH_LBL, self._offsets, self._n_samples)
@@ -155,27 +158,23 @@ if __name__ == "__main__":
     from vpt.streams.mask_stream import MaskStream
     from sklearn.metrics import accuracy_score
 
-    s.participant = "p4"
+    s.participant = "mix"
     s.sensor = "realsense"
 
-    folder = "data/rdf/p4"
-    ms = MaskStream(folder, ftype=".npy")
+    # folder = "data/rdf/p4"
+    # ms = MaskStream(folder, ftype=".npy")
+    folder = "data/rdf/mixed"
+    ms = MaskStream3(folder, ftype="mask.npy")
 
-    M = 5
-    radius = .04
+    refresh = False
+    M = 7
+    radius = .07
     n_samples = 500
+    seg_model_path = "data/rdf/trainedmodels/%s_M%i_rad%0.2f" % ("mixed", M, radius)
 
-    rdf_hs = RDFSegmentationModel(M, radius, n_samples)
-    print("Extracting Data...")
-    X, y = rdf_hs.generate_dataset(ms)
-    print("Done")
-    print()
-    print("Training RDF...")
-    rdf_hs.fit(X, y)
-    print("Done")
-    print()
+    rdf_hs = c.load_hs_model("mixed", M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=ms)
 
-    testdata_folder = "data/rdf/p4/test_masks/masks/p4a"
+    testdata_folder = "data/rdf/p3"
     ms_test = MaskStream(testdata_folder, ftype="npy")
 
     i_gen = ms_test.img_generator()

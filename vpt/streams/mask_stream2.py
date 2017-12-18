@@ -1,7 +1,10 @@
 from vpt.common import *
 from vpt.settings import *
 
-class MaskStream:
+# For use with generated and data...
+
+
+class MaskStream2:
 
     def __init__(self, folder, ftype="npy", annotations=None, normalize=False, ignore=False):
 
@@ -50,12 +53,9 @@ class MaskStream:
 
             # assumes masks are in rdf folder...TODO: Should probably change to Regex
             try:
-                temp = fname.split("/")
-                participant = temp[2]
-                exercise = temp[5]
-                file_num = temp[-1][:6]
-
-                og_path = os.path.join(og_folder, participant, exercise, file_num + ".bin")
+                og_path = fname.replace('masks/', "")
+                og_path = og_path.replace('mask', 'orig')
+                og_path = og_path.replace('_orig', "")
             except IndexError as e:
                 raise ValueError("Error: Mask Stream initialized with a non mask folder", e)
 

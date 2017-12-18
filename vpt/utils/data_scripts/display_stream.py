@@ -2,7 +2,7 @@ import cv2
 
 from vpt.common import *
 from vpt.streams.file_stream import *
-
+import vpt.settings as s
 
 def display_stream(fs):
 
@@ -20,7 +20,8 @@ def display_stream(fs):
 
 if __name__ == '__main__':
 
-    folder = "data/rdf/p1/seq_masks"
+    s.sensor = "realsense"
+    folder = "data/rdf/p3/seq_masks"
     ftype ="bmp"
     fs = FileStream(folder, "bmp")
 

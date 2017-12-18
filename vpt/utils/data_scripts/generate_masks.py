@@ -262,8 +262,7 @@ def depth_scaling(dmap, *args, **kwargs):
 
 def main(data_folder, background_folder, ftype, annotation_file, tag, transform_func, y_shift_amount=30, *args, **kwargs):
 
-    # var_threshs = np.linspace(.7, 1, 5)
-    var_threshs = [.925, 1.0]
+    var_threshs = np.linspace(.7, 1, 5)
     wait_char = None
 
     file_nums = get_files('data/rdf/generated/p01')
@@ -287,7 +286,6 @@ def main(data_folder, background_folder, ftype, annotation_file, tag, transform_
         error_num = tag.split("/")[0]
 
         for i, (lh, rh) in enumerate(h_gen):
-
             if i in file_nums[(error_num, var_thresh)]:
 
                 lh_new, rh_new = transform_hands(lh, rh, bg_dmap, y_shift_amount, transform_func, *args, **kwargs)
@@ -320,7 +318,7 @@ if __name__ == "__main__":
 
     import argparse
 
-    scale_factors = [1.3]
+    scale_factors = [.5, .7, .9]
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data-folder", help="Root Folder containing data to process", required=True)
@@ -341,4 +339,4 @@ if __name__ == "__main__":
 
     for scale_factor in scale_factors:
         print ("Scaling By:", scale_factor)
-        main(args.data_folder, args.background_folder, args.data_type, args.annotations, "error2/scaled", transform_func=depth_scaling, scale=scale_factor, preserve_range=True, order=0)
+        main(args.data_folder, args.background_folder, args.data_type, args.annotations, "error0/scaled", transform_func=depth_scaling, scale=scale_factor, preserve_range=True, order=0)

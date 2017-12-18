@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import vpt.settings as s
 import vpt.utils.image_processing as ip
 
-def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_model_path, masks="cae_masks"):
+def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_model_path, masks="cae_masks", ms=None):
     from vpt.hand_detection.rdf_segmentation_model import RDFSegmentationModel
     from vpt.streams.mask_stream import MaskStream
 
@@ -21,11 +21,21 @@ def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_mode
     else:
         print ("Hand segmentation model doesn't exist: %s.  Loading data and training new model..." % (segmentation_model_path))
         rdf_hs =RDFSegmentationModel(M, radius, n_samples)
-        fs = MaskStream(os.path.join("data/rdf", participant, masks, "masks"))
-        X, y = rdf_hs.generate_dataset(fs)
+        if ms == None:
+            ms = MaskStream(os.path.join("data/rdf", participant, masks, "masks"))
+
+        print("Generating Dataset...")
+        X, y = rdf_hs.generate_dataset(ms)
+        print("Done")
+        print()
+        print("Fitting RDF model...")
         rdf_hs.fit(X,y)
+        print("Done")
+        print()
+        print("Saving Model..")
         with open(segmentation_model_path, "wb+") as f:
             pickle.dump(rdf_hs, f)
+        print("Done")
     return rdf_hs
 
 
@@ -66,9 +76,11 @@ def load_depthmap(fpath, ftype="bin", normalize=False):
         elif data.shape == (480, 640, 3):
             # data = cv2.flip(data, 1)
             data = data[154:346, 80:560, :]
-        elif data.shape == (192, 480, 3):
+        elif data.shape == (192, 480, 3) or data.shape == (192, 480):
             pass
         elif data.shape == (320, 640, 3):
+            pass
+        elif data.shape == (320, 640):
             pass
         else:
             raise Exception("Invalid Data", fpath, data.shape)

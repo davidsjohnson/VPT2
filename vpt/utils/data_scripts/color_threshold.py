@@ -57,8 +57,8 @@ def find_color_bounds(fs, participant):
     print("Lower Color Threshold:", l_bound)
     print("Upper Color Threshold:", u_bound)
 
-    # np.save("vpt/utils/data_scripts/lower_bounds_threshold_" + participant, l_bound)
-    # np.save("vpt/utils/data_scripts/upper_bounds_threshold_" + participant, u_bound)
+    np.save("vpt/utils/data_scripts/lower_bounds_threshold_" + participant, l_bound)
+    np.save("vpt/utils/data_scripts/upper_bounds_threshold_" + participant, u_bound)
 
 
 def run(participant, mask_type):
@@ -87,7 +87,7 @@ def run(participant, mask_type):
         new_path = os.path.join(mask_folder, exercise)
 
         if not os.path.exists(new_path):
-            os.mkdir(new_path)
+            os.makedirs(new_path)
 
         new_path = os.path.join(new_path, filename)
         cv2.imwrite(new_path, mask)
@@ -95,10 +95,10 @@ def run(participant, mask_type):
 
 if __name__ == "__main__":
 
-    # folder = "data/rdf/p1/seq_masks"
-    folder = "data/rdf/generated/p0"
+    folder = "data/rdf/p3/seq_masks"
+    # folder = "data/rdf/generated/p0"
     vpt.settings.sensor = 'realsense'
     fs = FileStream(folder, ".bmp")
-    find_color_bounds(fs, "p0")
+    # find_color_bounds(fs, "p3")
     #
-    # run("p1", "seq")
+    run("p3", "seq")
