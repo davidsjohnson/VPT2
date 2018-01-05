@@ -134,7 +134,7 @@ class RDFSegmentationModel():
         pixels = np.hstack((np.expand_dims(pixels[1], 1), np.expand_dims(pixels[0], 1)))  # combine results to x, y pairs
 
         # Generate N samples from data set
-        sample_idxs = np.arange(pixels.shape[0])
+        sample_idxs = np.arange(pdixels.shape[0])
         np.random.shuffle(sample_idxs)
         sample_idxs = sample_idxs[:n_samples]
 

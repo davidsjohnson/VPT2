@@ -72,6 +72,9 @@ def run(participant, mask_type):
     l_bound = np.load("vpt/utils/data_scripts/lower_bounds_threshold_" + participant +".npy")
     u_bound = np.load("vpt/utils/data_scripts/upper_bounds_threshold_" + participant +".npy")
 
+    print(l_bound)
+    print(u_bound)
+
     iGen = fs.img_generator()
 
     for img, fname in iGen:
@@ -95,10 +98,10 @@ def run(participant, mask_type):
 
 if __name__ == "__main__":
 
-    folder = "data/rdf/p3/seq_masks"
+    folder = "data/rdf/p2/seq_masks"
     # folder = "data/rdf/generated/p0"
     vpt.settings.sensor = 'realsense'
     fs = FileStream(folder, ".bmp")
-    # find_color_bounds(fs, "p3")
+    # find_color_bounds(fs, "p2")
     #
-    run("p3", "seq")
+    run("p2", "seq")

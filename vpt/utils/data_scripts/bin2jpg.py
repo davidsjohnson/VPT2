@@ -160,22 +160,22 @@ if __name__ == "__main__":
 
     s.sensor = "realsense"
 
-    # folder = "data/posture/p3/"
-    # annotation_file = "data/posture/p3/annotations.txt"
-    # fs = FileStream(folder, ftype="bin", annotations=load_annotations(annotation_file, debug=True), ignore=True)
-    # #
-    # filelist = generate_sequential_filelist(fs, 30)
-    # # filelist = np.load("data/rdf/p4/cae_masks/reference_set_p4_.00625_0929.npy")
-    # # filelist = generate_random_filelist(fs, 400)
-    # print ("Generated Filelist Shape: ", filelist.shape)
-    # #
-    # retrieve_color(filelist, ref_type="seq")
+    folder = "data/posture/p4/"
+    annotation_file = "data/posture/p4/annotations.txt"
+    fs = FileStream(folder, ftype="bin", annotations=load_annotations(annotation_file, debug=True), ignore=True)
+    #
+    filelist = generate_sequential_filelist(fs, 30)
+    # filelist = np.load("data/rdf/p4/cae_masks/reference_set_p4_.00625_0929.npy")
+    # filelist = generate_random_filelist(fs, 400)
+    print ("Generated Filelist Shape: ", filelist.shape)
+    #
+    retrieve_color(filelist, ref_type="seq")
     #
     # vpt.settings.sensor = 'realsense'
-    folder = "data/rdf/p3"
-    fs = FileStream(folder, ftype="jpg")
-
-    create_masks(fs)
+    # folder = "data/rdf/p6"
+    # fs = FileStream(folder, ftype="jpg")
+    # #
+    # create_masks(fs)
     #
     # folder = "data/rdf/p4/test_masks/masks/"
     # annotation_file = "data/posture/p4/annotations.txt"
