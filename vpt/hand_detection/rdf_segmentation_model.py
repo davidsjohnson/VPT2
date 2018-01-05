@@ -1,5 +1,6 @@
 import time
-
+import sys
+sys.path.append("./")
 from sklearn.ensemble import RandomForestClassifier
 
 import vpt.hand_detection.depth_context_features as dcf
@@ -20,7 +21,7 @@ class RDFSegmentationModel():
 
         self._offsets = dcf.generate_feature_offsets(self._M, self._radius)
 
-        self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=-1)
+        self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=4)
 
 
     def generate_dataset(self, ms):
@@ -167,7 +168,7 @@ if __name__ == "__main__":
     ms = MaskStream3(folder, ftype="mask.npy")
 
     refresh = False
-    M = 7
+    M = 6
     radius = .07
     n_samples = 500
     seg_model_path = "data/rdf/trainedmodels/%s_M%i_rad%0.2f" % ("mixed", M, radius)
@@ -192,9 +193,9 @@ if __name__ == "__main__":
 
         total += 1
 
-        cv2.imshow("Masks", comb)
-        if cv2.waitKey(1) == ord('q'):
-            break
+        #cv2.imshow("Masks", comb)
+        #if cv2.waitKey(1) == ord('q'):
+        #    break
 
-    cv2.destroyAllWindows()
+    #cv2.destroyAllWindows()
     print ("Avg Accuracy:", avg_accuracy/total)

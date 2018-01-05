@@ -1,3 +1,5 @@
+import sys
+sys.path.append("./")
 from vpt.common import *
 import vpt.settings as s
 
