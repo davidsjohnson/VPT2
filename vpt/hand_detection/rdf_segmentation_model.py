@@ -1,5 +1,6 @@
 import time
-
+import sys
+sys.path.append("./")
 from sklearn.ensemble import RandomForestClassifier
 
 import vpt.hand_detection.depth_context_features as dcf
@@ -192,9 +193,9 @@ if __name__ == "__main__":
 
         total += 1
 
-    #     # cv2.imshow("Masks", comb)
-    #     # if cv2.waitKey(1) == ord('q'):
-    #     #     break
-    #
-    # cv2.destroyAllWindows()
+        #cv2.imshow("Masks", comb)
+        #if cv2.waitKey(1) == ord('q'):
+        #    break
+
+    #cv2.destroyAllWindows()
     print ("Avg Accuracy:", avg_accuracy/total)
