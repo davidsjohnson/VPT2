@@ -20,7 +20,7 @@ class RDFSegmentationModel():
 
         self._offsets = dcf.generate_feature_offsets(self._M, self._radius)
 
-        self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=-1)
+        self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=4)
 
 
     def generate_dataset(self, ms):
@@ -192,9 +192,9 @@ if __name__ == "__main__":
 
         total += 1
 
-        cv2.imshow("Masks", comb)
-        if cv2.waitKey(1) == ord('q'):
-            break
-
-    cv2.destroyAllWindows()
+    #     # cv2.imshow("Masks", comb)
+    #     # if cv2.waitKey(1) == ord('q'):
+    #     #     break
+    #
+    # cv2.destroyAllWindows()
     print ("Avg Accuracy:", avg_accuracy/total)
