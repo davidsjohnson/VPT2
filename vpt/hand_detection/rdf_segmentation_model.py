@@ -156,29 +156,29 @@ class RDFSegmentationModel():
 
 if __name__ == "__main__":
 
-    from vpt.streams.mask_stream import MaskStream
+    from vpt.streams.compressed_stream import CompressedStream
     from sklearn.metrics import accuracy_score
+
 
     s.participant = "mix"
     s.sensor = "realsense"
 
-    # folder = "data/rdf/p4"
-    # ms = MaskStream(folder, ftype=".npy")
-    folder = "data/rdf/mixed"
-    ms = MaskStream3(folder, ftype="mask.npy")
+    training_folders = ["data/rdf/training/p1", "data/rdf/training/p3", "data/rdf/training/p4", "data/rdf/training/p6"]
+    test_folders = ["data/rdf/training/p2"]
 
-    refresh = False
-    M = 6
+    cs = CompressedStream(training_folders)
+
+    refresh = True
+    M = 5
     radius = .07
     n_samples = 500
     seg_model_path = "data/rdf/trainedmodels/%s_M%i_rad%0.2f" % ("mixed", M, radius)
 
-    rdf_hs = c.load_hs_model("mixed", M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=ms)
+    rdf_hs = c.load_hs_model("mixed_no_p2", M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs)
 
-    testdata_folder = "data/rdf/p3"
-    ms_test = MaskStream(testdata_folder, ftype="npy")
+    cs_test = CompressedStream(test_folders)
 
-    i_gen = ms_test.img_generator()
+    i_gen = cs_test.img_generator()
 
     avg_accuracy = 0
     total = 0
