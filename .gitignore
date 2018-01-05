@@ -9,4 +9,5 @@ results*.pdf
 vpt2_py3/
 *.wav
 core*
-
+tmp.npy
+vpt/utils/data_scripts/*.npy

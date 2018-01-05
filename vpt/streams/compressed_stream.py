@@ -3,9 +3,9 @@ from vpt.settings import *
 
 class CompressedStream:
 
-    def __init__(self, folder, ftype="npz", annotations=None, normalize=False, ignore=False):
+    def __init__(self, folders, ftype="npz", annotations=None, normalize=False, ignore=False):
 
-        self._folder = folder
+        self._folders = folders
         self._ftype = ftype
         self._fpaths = []
         self._annotations = annotations
@@ -18,26 +18,27 @@ class CompressedStream:
 
 
     def load_filenames(self):
-        for root, dirs, files in os.walk(self._folder, followlinks=True):
-            for fname in files:
-                if self._ftype in fname and "background" not in root:  # exclude folders with background in name
-                    fpath = os.path.join(root, fname)
+        for folder in self._folders:
+            for root, dirs, files in os.walk(folder, followlinks=True):
+                for fname in files:
+                    if self._ftype in fname and "background" not in root:  # exclude folders with background in name
+                        fpath = os.path.join(root, fname)
 
-                    if self._strip:
-                        try:
-                            labels = (None, None)
-                            if self._annotations != None:
-                                key = getFileKey(fpath)
-                                labels = self._annotations[key]
-                                if self._ignore:
-                                    if labels[0] in ANNOTATIONS and labels[1] in ANNOTATIONS:
+                        if self._strip:
+                            try:
+                                labels = (None, None)
+                                if self._annotations != None:
+                                    key = getFileKey(fpath)
+                                    labels = self._annotations[key]
+                                    if self._ignore:
+                                        if labels[0] in ANNOTATIONS and labels[1] in ANNOTATIONS:
+                                            self._fpaths.append(fpath)
+                                    else:
                                         self._fpaths.append(fpath)
-                                else:
-                                    self._fpaths.append(fpath)
-                        except Exception as e:
-                            print (e)
-                    else:
-                        self._fpaths.append(fpath)
+                            except Exception as e:
+                                print (e)
+                        else:
+                            self._fpaths.append(fpath)
 
         print ("# Files Loaded:", len(self._fpaths))
 
@@ -64,8 +65,8 @@ class CompressedStream:
 
 def test():
 
-    folder = "data/rdf/training/p4"
-    cs = CompressedStream(folder)
+    folders = ["data/rdf/training/p4", "data/rdf/training/p2", "data/rdf/training/p3"]
+    cs = CompressedStream(folders)
 
     mgen = cs.img_generator()
     for mask, dmap, fname in mgen:
