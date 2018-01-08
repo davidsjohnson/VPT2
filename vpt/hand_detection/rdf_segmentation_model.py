@@ -117,10 +117,10 @@ class RDFSegmentationModel():
         mask[:, :, s.LH][p == s.LH_LBL] = 255
         mask[:, :, s.RH][p == s.RH_LBL] = 255
 
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
-
-        mask[:, :, s.LH] = cv2.morphologyEx(mask[:, :, s.LH], cv2.MORPH_OPEN, kernel)
-        mask[:, :, s.RH] = cv2.morphologyEx(mask[:, :, s.RH], cv2.MORPH_OPEN, kernel)
+        # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
+        #
+        # mask[:, :, s.LH] = cv2.morphologyEx(mask[:, :, s.LH], cv2.MORPH_OPEN, kernel)
+        # mask[:, :, s.RH] = cv2.morphologyEx(mask[:, :, s.RH], cv2.MORPH_OPEN, kernel)
 
         return mask
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     s.participant = "mix"
     s.sensor = "realsense"
 
-    training_participants = ["p1", "p2", "p3", "p4", "p6"]
+    training_participants = ["p2", "p2", "p3", "p4", "p6"]
     data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
 
     for testing_p in training_participants:
@@ -193,7 +193,7 @@ if __name__ == "__main__":
 
         i_gen = cs_test.img_generator()
 
-        print("\n## Testing Model...")
+        print("\n## Testing Model...", flush=True)
         avg_accuracy = 0
         total = 0
         for i, (mask, dmap, fpath) in enumerate(i_gen):
@@ -203,15 +203,15 @@ if __name__ == "__main__":
 
             accuracy = accuracy_score(mask[:,:,:2].ravel(), p_mask[:,:,:2].ravel())
             avg_accuracy += accuracy
-            # print ("Accuracy:", accuracy)
+            print ("Accuracy:", accuracy)
 
             total += 1
 
-        #     cv2.imshow("Masks", comb)
-        #     if cv2.waitKey(1) == ord('q'):
-        #        break
-        #
-        # cv2.destroyAllWindows()
+            cv2.imshow("Masks", comb)
+            if cv2.waitKey(1) == ord('q'):
+               break
+
+        cv2.destroyAllWindows()
         print ("Avg Accuracy:", avg_accuracy/total)
         print()
         print()
