@@ -193,7 +193,7 @@ if __name__ == "__main__":
 
         i_gen = cs_test.img_generator()
 
-        print("\n## Testing Model...")
+        print("\n## Testing Model...", flush=True)
         avg_accuracy = 0
         total = 0
         for i, (mask, dmap, fpath) in enumerate(i_gen):
