@@ -163,16 +163,16 @@ if __name__ == "__main__":
     s.participant = "mix"
     s.sensor = "realsense"
 
-    training_folders = ["data/rdf/training/p1", "data/rdf/training/p3", "data/rdf/training/p4", "data/rdf/training/p6"]
-    test_folders = ["data/rdf/training/p2"]
+    training_folders = ["data/rdf/training/p2", "data/rdf/training/p3", "data/rdf/training/p4", "data/rdf/training/p6"]
+    test_folders = ["data/rdf/training/p1"]
 
     cs = CompressedStream(training_folders)
 
     refresh = True
     M = 5
     radius = .07
-    n_samples = 500
-    seg_model_path = "data/rdf/trainedmodels/%s_M%i_rad%0.2f" % ("mixed", M, radius)
+    n_samples = 200
+    seg_model_path = "data/rdf/trainedmodels/%s_M%i_rad%0.2f" % ("mixed_no_p1", M, radius)
 
     rdf_hs = c.load_hs_model("mixed_no_p2", M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs)
 
