@@ -65,7 +65,7 @@ class CompressedStream:
 
 def test():
 
-    folders = ["data/rdf/training/p4", "data/rdf/training/p2", "data/rdf/training/p3"]
+    folders = [ "data/rdf/training/p6", "data/rdf/training/p3"]
     cs = CompressedStream(folders)
 
     mgen = cs.img_generator()
