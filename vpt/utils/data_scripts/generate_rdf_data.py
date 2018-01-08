@@ -12,10 +12,10 @@ from vpt.hand_detection.hand import Hand
 import vpt.settings as s
 
 
-# MASK_FOLDERS = {"p1" : "data/rdf/p1/seq_masks", "p2" : "data/rdf/p2/seq_masks", "p3" : "data/rdf/p3/seq_masks",
-#                 "p4" : "data/rdf/p4/seq_masks", "p6" : "data/rdf/p6/seq_masks"}
+MASK_FOLDERS = {"p1" : "data/rdf/p1/seq_masks", "p2" : "data/rdf/p2/seq_masks", "p3" : "data/rdf/p3/seq_masks",
+                "p4" : "data/rdf/p4/seq_masks", "p6" : "data/rdf/p6/seq_masks"}
 
-MASK_FOLDERS = {"p6" : "data/rdf/p6/seq_masks"}
+# MASK_FOLDERS = {"p6" : "data/rdf/p6/seq_masks"}
 
 
 def get_bounding_box(mask):
@@ -141,6 +141,19 @@ def main():
         mgen = fs.img_generator()
         for mask, dmap, fpath in mgen:
 
+            # work around for masks with swapped color channels
+            if participant != "p3" and participant != "p4":
+                tmp_mask = np.zeros_like(mask)
+                tmp_mask[:,:, s.LH] = mask[:,:, s.RH]
+                tmp_mask[:, :, s.RH] = mask[:, :, s.LH]
+
+                # cv2.imshow("MASK OG", mask)
+                # cv2.imshow("TMP MASK", tmp_mask)
+                # if cv2.waitKey() == ord("q"):
+                #     break
+
+                mask = tmp_mask
+
             # save original to training data folder
             fname = "{:06d}.npz".format(i)
             fpath = os.path.join(base_folder, s.participant, fname)
@@ -149,6 +162,8 @@ def main():
 
             ##### Create augmented data
             # Create Hand Object for Transform Function
+
+            #work around for masks with swapped LH and RH colors
             lh_box = get_bounding_box(mask[:, :, s.LH])
             rh_box = get_bounding_box(mask[:, :, s.RH])
             lh = Hand(mask[:, :, s.LH], dmap, lh_box, fpath)
@@ -158,7 +173,7 @@ def main():
             for x in scale_factors:
                 for y in scale_factors:
                     for z in scale_factors:
-                        # try:
+                        try:
                             dmap_new, mask_new = transform_hands(lh, rh, dmap_bkgd, transform_func=scale, scale=(y, x), zfactor=z, preserve_range=True, order=0)
 
                             # save transformation
@@ -166,8 +181,9 @@ def main():
                             fpath = os.path.join(base_folder, s.participant, fname)
                             np.savez_compressed(fpath, dmap=dmap_new, mask=mask_new)
                             i += 1
-                        # except IndexError as e:
-                        #     print("Error Creating transformation:", e)
+                        except IndexError as e:
+                            print("Error Creating transformation:", e)
+
 
 if __name__ == '__main__':
     main()

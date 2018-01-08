@@ -159,43 +159,59 @@ if __name__ == "__main__":
     from vpt.streams.compressed_stream import CompressedStream
     from sklearn.metrics import accuracy_score
 
-
     s.participant = "mix"
     s.sensor = "realsense"
 
-    training_folders = ["data/rdf/training/p2", "data/rdf/training/p3", "data/rdf/training/p4", "data/rdf/training/p6"]
-    test_folders = ["data/rdf/training/p1"]
+    training_participants = ["p1", "p2", "p3", "p4", "p6"]
+    data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
 
-    cs = CompressedStream(training_folders)
+    for testing_p in training_participants:
 
-    refresh = True
-    M = 5
-    radius = .07
-    n_samples = 200
-    seg_model_path = "data/rdf/trainedmodels/%s_M%i_rad%0.2f" % ("mixed_no_p1", M, radius)
+        print("#### Testing Participant {} ####".format(testing_p))
 
-    rdf_hs = c.load_hs_model("mixed_no_p2", M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs)
+        training_folders = [folder for p, folder in data_folders.items() if p != testing_p]
+        test_folders = [data_folders[testing_p]]
 
-    cs_test = CompressedStream(test_folders)
+        cs = CompressedStream(training_folders)
 
-    i_gen = cs_test.img_generator()
+        refresh = False
+        M = 5
+        radius = .07
+        n_samples = 200
+        seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
 
-    avg_accuracy = 0
-    total = 0
-    for i, (mask, dmap, fpath) in enumerate(i_gen):
+        print(training_folders)
+        print(test_folders)
+        print(seg_model_path)
+        print("M:", M)
+        print("Rad:", radius)
 
-        p_mask = rdf_hs.generate_mask(dmap)
-        comb = np.vstack((p_mask, mask))
+        model_p = "mixed_no_{}".format(testing_p)
+        rdf_hs = c.load_hs_model(model_p, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs)
 
-        accuracy = accuracy_score(mask[:,:,:2].ravel(), p_mask[:,:,:2].ravel())
-        avg_accuracy += accuracy
-        print ("Accuracy:", accuracy)
+        cs_test = CompressedStream(test_folders)
 
-        total += 1
+        i_gen = cs_test.img_generator()
 
-        #cv2.imshow("Masks", comb)
-        #if cv2.waitKey(1) == ord('q'):
-        #    break
+        print("\n## Testing Model...")
+        avg_accuracy = 0
+        total = 0
+        for i, (mask, dmap, fpath) in enumerate(i_gen):
 
-    #cv2.destroyAllWindows()
-    print ("Avg Accuracy:", avg_accuracy/total)
+            p_mask = rdf_hs.generate_mask(dmap)
+            comb = np.vstack((p_mask, mask))
+
+            accuracy = accuracy_score(mask[:,:,:2].ravel(), p_mask[:,:,:2].ravel())
+            avg_accuracy += accuracy
+            # print ("Accuracy:", accuracy)
+
+            total += 1
+
+        #     cv2.imshow("Masks", comb)
+        #     if cv2.waitKey(1) == ord('q'):
+        #        break
+        #
+        # cv2.destroyAllWindows()
+        print ("Avg Accuracy:", avg_accuracy/total)
+        print()
+        print()
