@@ -162,7 +162,7 @@ if __name__ == "__main__":
     s.participant = "mix"
     s.sensor = "realsense"
 
-    training_participants = ["p2", "p2", "p3", "p4", "p6"]
+    training_participants = ["p1", "p2", "p3", "p4", "p6"]
     data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
 
     for testing_p in training_participants:
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
         refresh = False
         M = 5
-        radius = .07
+        radius = .1
         n_samples = 200
         seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
 
@@ -203,15 +203,15 @@ if __name__ == "__main__":
 
             accuracy = accuracy_score(mask[:,:,:2].ravel(), p_mask[:,:,:2].ravel())
             avg_accuracy += accuracy
-            print ("Accuracy:", accuracy)
+            #print ("Accuracy:", accuracy)
 
             total += 1
 
-            cv2.imshow("Masks", comb)
-            if cv2.waitKey(1) == ord('q'):
-               break
+            #cv2.imshow("Masks", comb)
+            #if cv2.waitKey(1) == ord('q'):
+            #   break
 
-        cv2.destroyAllWindows()
+        #cv2.destroyAllWindows()
         print ("Avg Accuracy:", avg_accuracy/total)
         print()
         print()
