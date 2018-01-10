@@ -12,10 +12,10 @@ from vpt.hand_detection.hand import Hand
 import vpt.settings as s
 
 
-MASK_FOLDERS = {"p1" : "data/rdf/p1/seq_masks", "p2" : "data/rdf/p2/seq_masks", "p3" : "data/rdf/p3/seq_masks",
-                "p4" : "data/rdf/p4/seq_masks", "p6" : "data/rdf/p6/seq_masks"}
+# MASK_FOLDERS = {"p1" : "data/rdf/p1/seq_masks", "p2" : "data/rdf/p2/seq_masks", "p3" : "data/rdf/p3/seq_masks",
+#                 "p4" : "data/rdf/p4/seq_masks", "p6" : "data/rdf/p6/seq_masks"}
 
-# MASK_FOLDERS = {"p6" : "data/rdf/p6/seq_masks"}
+MASK_FOLDERS = {"p2" : "data/rdf/p2/seq_masks"}
 
 
 def get_bounding_box(mask):
@@ -132,10 +132,10 @@ def main():
 
     for participant, folder in MASK_FOLDERS.items():
 
-
+        print("#### Creating Data For {} ####".format(participant))
         s.participant = participant
         fs = MaskStream(MASK_FOLDERS[s.participant])
-        dmap_bkgd = load_depthmap("data/backgrounds/{}/{}bs/000240.bin".format(s.participant, s.participant), "bin", False)
+        # dmap_bkgd = load_depthmap("data/backgrounds/{}/{}bs/000240.bin".format(s.participant, s.participant), "bin", False)
 
         i = 0
         mgen = fs.img_generator()
@@ -154,6 +154,13 @@ def main():
 
                 mask = tmp_mask
 
+            dmap_bkgd = dmap.copy()
+            dmap_bkgd[mask[:, :, s.LH] > 0] = 0
+            dmap_bkgd[mask[:, :, s.RH] > 0] = 0
+
+            bkgd_img = (ip.normalize(dmap_bkgd) * 255).astype('uint8')
+            cv2.imshow("BACKGROUND",bkgd_img)
+
             # save original to training data folder
             fname = "{:06d}.npz".format(i)
             fpath = os.path.join(base_folder, s.participant, fname)
@@ -162,8 +169,6 @@ def main():
 
             ##### Create augmented data
             # Create Hand Object for Transform Function
-
-            #work around for masks with swapped LH and RH colors
             lh_box = get_bounding_box(mask[:, :, s.LH])
             rh_box = get_bounding_box(mask[:, :, s.RH])
             lh = Hand(mask[:, :, s.LH], dmap, lh_box, fpath)
@@ -181,6 +186,11 @@ def main():
                             fpath = os.path.join(base_folder, s.participant, fname)
                             np.savez_compressed(fpath, dmap=dmap_new, mask=mask_new)
                             i += 1
+
+                            dmap_img = (ip.normalize(dmap_new) * 255).astype('uint8')
+                            cv2.imshow("NEW DMAP", dmap_img)
+                            if cv2.waitKey() == ord('q'):
+                                break
                         except IndexError as e:
                             print("Error Creating transformation:", e)
 
