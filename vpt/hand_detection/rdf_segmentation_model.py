@@ -44,10 +44,10 @@ class RDFSegmentationModel():
 
         for i, (mask, dmap, fpath) in enumerate(i_gen):
 
-            print ("Extracting Features from Image:", i)
+            # print ("Extracting Features from Image:", i)
             start_time = time.time()
 
-            print("mask shape", mask.shape, fpath)
+            # print("mask shape", mask.shape, fpath)
 
             lh_results = self.extract_features(mask[:, :, s.LH], dmap, s.LH_LBL, self._offsets, self._n_samples)
             rh_results = self.extract_features(mask[:, :, s.RH], dmap, s.RH_LBL, self._offsets, self._n_samples)
@@ -55,8 +55,8 @@ class RDFSegmentationModel():
             bg_mask = np.logical_not(mask[:, :, s.LH] + mask[:, :, s.RH])         # combine left and right to find background
             bg_results = self.extract_features(bg_mask, dmap, s.BG_LBL, self._offsets, self._n_samples)
 
-            print ("LH", np.array(lh_results[0]).shape)
-            print ("RH", np.array(rh_results[0]).shape)
+            # print ("LH", np.array(lh_results[0]).shape)
+            # print ("RH", np.array(rh_results[0]).shape)
 
             # check if masks ok
             if np.array(lh_results[0]).shape != (self._n_samples, len(self._offsets)):
@@ -79,7 +79,7 @@ class RDFSegmentationModel():
 
             end_time = time.time()
             total_time = end_time-start_time
-            print ("\tDone: Took %f seconds" % total_time)
+            # print ("\tDone: Took %f seconds" % total_time)
 
         print ("XLH:", np.array(X_lh).shape)
         print ("XRH:", np.array(X_rh).shape)
@@ -149,7 +149,7 @@ class RDFSegmentationModel():
 
         end_time = time.time()
         total_time = end_time - start_time
-        print ("\tTotal Time for Samples: %f seconds: " % total_time)
+        #print ("\tTotal Time for Samples: %f seconds: " % total_time)
 
         return X, y
 
@@ -162,22 +162,23 @@ if __name__ == "__main__":
     s.participant = "mix"
     s.sensor = "realsense"
 
-    training_participants = ["p2", "p2", "p3", "p4", "p6"]
-    data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
+    training_participants = ["p1", "p2", "p3", "p4", "p6"]
+    data_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
+    test_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
 
     for testing_p in training_participants:
 
         print("#### Testing Participant {} ####".format(testing_p))
 
         training_folders = [folder for p, folder in data_folders.items() if p != testing_p]
-        test_folders = [data_folders[testing_p]]
+        test_folder = [test_folders[testing_p]]
 
         cs = CompressedStream(training_folders)
 
         refresh = False
-        M = 5
-        radius = .07
-        n_samples = 200
+        M = 4
+        radius = .1
+        n_samples = 500
         seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
 
         print(training_folders)
@@ -189,11 +190,10 @@ if __name__ == "__main__":
         model_p = "mixed_no_{}".format(testing_p)
         rdf_hs = c.load_hs_model(model_p, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs)
 
-        cs_test = CompressedStream(test_folders)
-
+        print("\n## Testing Model...", flush=True)
+        cs_test = CompressedStream(test_folder)
         i_gen = cs_test.img_generator()
 
-        print("\n## Testing Model...", flush=True)
         avg_accuracy = 0
         total = 0
         for i, (mask, dmap, fpath) in enumerate(i_gen):
@@ -203,11 +203,13 @@ if __name__ == "__main__":
 
             accuracy = accuracy_score(mask[:,:,:2].ravel(), p_mask[:,:,:2].ravel())
             avg_accuracy += accuracy
-            print ("Accuracy:", accuracy)
+            # print ("Accuracy:", accuracy)
 
             total += 1
 
+            dmap_img = (ip.normalize(dmap)*255).astype('uint8')
             cv2.imshow("Masks", comb)
+            # cv2.imshow("DMap", dmap_img)
             if cv2.waitKey(1) == ord('q'):
                break
 
