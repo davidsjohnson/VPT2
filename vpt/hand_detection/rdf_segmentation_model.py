@@ -176,8 +176,8 @@ if __name__ == "__main__":
         cs = CompressedStream(training_folders)
 
         refresh = False
-        M = 4
-        radius = .1
+        M = 7
+        radius = .5
         n_samples = 500
         seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
 
