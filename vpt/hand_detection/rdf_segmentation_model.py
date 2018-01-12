@@ -163,7 +163,7 @@ if __name__ == "__main__":
     s.sensor = "realsense"
 
     training_participants = ["p1", "p2", "p3", "p4", "p6"]
-    data_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
+    data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
     test_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
 
     for testing_p in training_participants:
@@ -175,9 +175,9 @@ if __name__ == "__main__":
 
         cs = CompressedStream(training_folders)
 
-        refresh = False
-        M = 5
-        radius = .1
+        refres = False
+        M = 7
+        radius = .3
         n_samples = 200
         seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
 
