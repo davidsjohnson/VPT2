@@ -175,7 +175,7 @@ if __name__ == "__main__":
 
         cs = CompressedStream(training_folders)
 
-        refres = False
+        refresh = True
         M = 7
         radius = .3
         n_samples = 200
@@ -206,7 +206,7 @@ if __name__ == "__main__":
             #print ("Accuracy:", accuracy)
             total += 1
 
-            dmap_img = (ip.normalize(dmap)*255).astype('uint8')
+            #dmap_img = (ip.normalize(dmap)*255).astype('uint8')
             #cv2.imshow("Masks", comb)
             # cv2.imshow("DMap", dmap_img)
             #if cv2.waitKey(1) == ord('q'):
