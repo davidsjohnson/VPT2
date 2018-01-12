@@ -176,9 +176,9 @@ if __name__ == "__main__":
         cs = CompressedStream(training_folders)
 
         refresh = False
-        M = 7
-        radius = .5
-        n_samples = 500
+        M = 5
+        radius = .1
+        n_samples = 200
         seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
 
         print(training_folders)
@@ -203,17 +203,16 @@ if __name__ == "__main__":
 
             accuracy = accuracy_score(mask[:,:,:2].ravel(), p_mask[:,:,:2].ravel())
             avg_accuracy += accuracy
-            # print ("Accuracy:", accuracy)
-
+            #print ("Accuracy:", accuracy)
             total += 1
 
             dmap_img = (ip.normalize(dmap)*255).astype('uint8')
-            cv2.imshow("Masks", comb)
+            #cv2.imshow("Masks", comb)
             # cv2.imshow("DMap", dmap_img)
-            if cv2.waitKey(1) == ord('q'):
-               break
+            #if cv2.waitKey(1) == ord('q'):
+            #   break
 
-        cv2.destroyAllWindows()
+        #cv2.destroyAllWindows()
         print ("Avg Accuracy:", avg_accuracy/total)
         print()
         print()
