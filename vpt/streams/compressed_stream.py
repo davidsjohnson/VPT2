@@ -51,6 +51,7 @@ class CompressedStream:
                 hands = np.load(fname)
                 mask = hands["mask"]
                 dmap = hands["dmap"]
+                dmap = background_sub(dmap)
 
                 yield mask, dmap, fname
             except Exception as e:

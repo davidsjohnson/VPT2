@@ -3,12 +3,9 @@ import sys
 sys.path.append("./")
 from sklearn.ensemble import RandomForestClassifier
 
+from vpt.common import *
 import vpt.hand_detection.depth_context_features as dcf
-from vpt.streams.file_stream import *
-
-import vpt.common as c
 import vpt.settings as s
-from vpt.streams.mask_stream3 import MaskStream3
 
 
 class RDFSegmentationModel():
@@ -163,7 +160,7 @@ if __name__ == "__main__":
     s.sensor = "realsense"
 
     training_participants = ["p1", "p2", "p3", "p4", "p6"]
-    data_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
+    data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
     test_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
 
     for testing_p in training_participants:
@@ -175,9 +172,9 @@ if __name__ == "__main__":
 
         cs = CompressedStream(training_folders)
 
-        refresh = False
-        M = 5
-        radius = .1
+        refresh = True
+        M = 7
+        radius = .3
         n_samples = 200
         seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
 
@@ -188,7 +185,7 @@ if __name__ == "__main__":
         print("Rad:", radius)
 
         model_p = "mixed_no_{}".format(testing_p)
-        rdf_hs = c.load_hs_model(model_p, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs)
+        rdf_hs = load_hs_model(model_p, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs)
 
         print("\n## Testing Model...", flush=True)
         cs_test = CompressedStream(test_folder)
@@ -206,13 +203,13 @@ if __name__ == "__main__":
             #print ("Accuracy:", accuracy)
             total += 1
 
-            dmap_img = (ip.normalize(dmap)*255).astype('uint8')
-            #cv2.imshow("Masks", comb)
+            # dmap_img = (ip.normalize(dmap)*255).astype('uint8')
+            # cv2.imshow("Masks", comb)
             # cv2.imshow("DMap", dmap_img)
-            #if cv2.waitKey(1) == ord('q'):
+            # if cv2.waitKey(1) == ord('q'):
             #   break
 
-        #cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
         print ("Avg Accuracy:", avg_accuracy/total)
         print()
         print()
