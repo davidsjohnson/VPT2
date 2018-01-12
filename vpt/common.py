@@ -5,10 +5,14 @@ import warnings
 
 import cv2
 import numpy as np
+import peakutils
 import matplotlib.pyplot as plt
 
 import vpt.settings as s
 import vpt.utils.image_processing as ip
+
+
+DMAP_MAX_VAL = 1300
 
 def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_model_path, masks="cae_masks", ms=None):
     from vpt.hand_detection.rdf_segmentation_model import RDFSegmentationModel
@@ -92,6 +96,20 @@ def load_depthmap(fpath, ftype="bin", normalize=False):
         data = ip.normalize(data)
 
     return data
+
+
+def background_sub(dmap):
+
+    dmap_tmp = dmap.copy()
+
+    # hist = np.histogram(dmap[dmap!=0].ravel(), bins=30)
+    # indexes = peakutils.indexes(-hist[0])
+
+    # if len(indexes) > 0:
+    # thresh_val = hist[1][indexes[0]]
+    dmap_tmp[dmap_tmp > 780] = 0
+
+    return dmap_tmp
 
 
 def getFileKey(fpath):

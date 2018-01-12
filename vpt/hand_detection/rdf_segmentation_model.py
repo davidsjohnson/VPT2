@@ -3,12 +3,9 @@ import sys
 sys.path.append("./")
 from sklearn.ensemble import RandomForestClassifier
 
+from vpt.common import *
 import vpt.hand_detection.depth_context_features as dcf
-from vpt.streams.file_stream import *
-
-import vpt.common as c
 import vpt.settings as s
-from vpt.streams.mask_stream3 import MaskStream3
 
 
 class RDFSegmentationModel():
@@ -188,7 +185,7 @@ if __name__ == "__main__":
         print("Rad:", radius)
 
         model_p = "mixed_no_{}".format(testing_p)
-        rdf_hs = c.load_hs_model(model_p, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs)
+        rdf_hs = load_hs_model(model_p, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs)
 
         print("\n## Testing Model...", flush=True)
         cs_test = CompressedStream(test_folder)
@@ -206,13 +203,13 @@ if __name__ == "__main__":
             #print ("Accuracy:", accuracy)
             total += 1
 
-            #dmap_img = (ip.normalize(dmap)*255).astype('uint8')
-            #cv2.imshow("Masks", comb)
+            # dmap_img = (ip.normalize(dmap)*255).astype('uint8')
+            # cv2.imshow("Masks", comb)
             # cv2.imshow("DMap", dmap_img)
-            #if cv2.waitKey(1) == ord('q'):
+            # if cv2.waitKey(1) == ord('q'):
             #   break
 
-        #cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
         print ("Avg Accuracy:", avg_accuracy/total)
         print()
         print()
