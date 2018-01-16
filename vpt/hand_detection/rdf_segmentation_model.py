@@ -176,7 +176,7 @@ if __name__ == "__main__":
     s.sensor = "realsense"
 
     training_participants = ["p2", "p1", "p3", "p4", "p6"]
-    data_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
+    data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
     test_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
 
     for testing_p in training_participants:
@@ -220,13 +220,13 @@ if __name__ == "__main__":
             #print ("Accuracy:", accuracy)
             total += 1
 
-            dmap_img = (ip.normalize(dmap)*255).astype('uint8')
-            cv2.imshow("Masks", comb)
+            #dmap_img = (ip.normalize(dmap)*255).astype('uint8')
+            #cv2.imshow("Masks", comb)
             # cv2.imshow("DMap", dmap_img)
-            if cv2.waitKey(1) == ord('q'):
-              break
+            #if cv2.waitKey(1) == ord('q'):
+            #  break
 
-        cv2.destroyAllWindows()
+        #cv2.destroyAllWindows()
         print ("Avg Accuracy:", avg_accuracy/total)
         print()
         print()
