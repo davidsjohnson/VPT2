@@ -20,7 +20,7 @@ class RDFSegmentationModel():
 
         self._offsets = dcf.generate_feature_offsets(self._M, self._radius)
         self._offsets2 = None
-        if self._combined :
+        if self._combined:
             self._offsets2 = dcf.generate_feature_offsets(self._M, self._radius/5)
 
         self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=4)
@@ -170,7 +170,7 @@ class RDFSegmentationModel():
 if __name__ == "__main__":
 
     from vpt.streams.compressed_stream import CompressedStream
-    from sklearn.metrics import accuracy_score
+    from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
     s.participant = "mix"
     s.sensor = "realsense"
@@ -208,25 +208,40 @@ if __name__ == "__main__":
         cs_test = CompressedStream(test_folder)
         i_gen = cs_test.img_generator()
 
-        avg_accuracy = 0
+        result_stats = {"accuracy": 0, "precision": 0, "recall": 0, "f": 0}
         total = 0
         for i, (mask, dmap, fpath) in enumerate(i_gen):
 
             p_mask = rdf_hs.generate_mask(dmap)
             comb = np.vstack((p_mask, mask))
 
-            accuracy = accuracy_score(mask[:,:,:2].ravel(), p_mask[:,:,:2].ravel())
-            avg_accuracy += accuracy
+            y_true = np.zeros_like(dmap, dtype="uint8")
+            y_true[mask[:, :, 0] > 0] = 1
+            y_true[mask[:, :, 1] > 0] = 2
+            y_pred = np.zeros_like(dmap, dtype="uint8")
+            y_pred[p_mask[:, :, 0] > 0] = 1
+            y_pred[p_mask[:, :, 1] > 0] = 2
+
+            accuracy = accuracy_score(y_true=y_true.ravel(), y_pred=y_pred.ravel())
+            precision, recall, f, support = precision_recall_fscore_support(y_true=y_true.ravel(), y_pred=y_pred.ravel())
+
+            result_stats["accuracy"] += accuracy
+            result_stats["precision"] += precision
+            result_stats["recall"] += recall
+            result_stats["f"] += f
             #print ("Accuracy:", accuracy)
             total += 1
 
-            dmap_img = (ip.normalize(dmap)*255).astype('uint8')
-            cv2.imshow("Masks", comb)
+            #dmap_img = (ip.normalize(dmap)*255).astype('uint8')
+            # cv2.imshow("Masks", comb)
             # cv2.imshow("DMap", dmap_img)
-            if cv2.waitKey(1) == ord('q'):
-              break
+            # if cv2.waitKey(1) == ord('q'):
+            #   break
 
-        cv2.destroyAllWindows()
-        print ("Avg Accuracy:", avg_accuracy/total)
+        # cv2.destroyAllWindows()
+        print("Avg Accuracy:", result_stats["accuracy"]/total)
+        print("Avg Precision:", result_stats["precision"] / total)
+        print("Avg Recall:", result_stats["recall"] / total)
+        print("Avg F:", result_stats["f"] / total)
         print()
         print()
