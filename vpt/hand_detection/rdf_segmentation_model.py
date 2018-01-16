@@ -175,13 +175,13 @@ if __name__ == "__main__":
     s.participant = "mix"
     s.sensor = "realsense"
 
-    training_participants = ["p2", "p1", "p3", "p4", "p6"]
+    training_participants = ["p1", "p2", "p3", "p4", "p6"]
     data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
     test_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
 
     for testing_p in training_participants:
 
-        print("#### Testing Participant {} ####".format(testing_p))
+        print("#### Testing Participant {} ####".format(testing_p), flush=True)
 
         training_folders = [folder for p, folder in data_folders.items() if p != testing_p]
         test_folder = [test_folders[testing_p]]
@@ -193,13 +193,17 @@ if __name__ == "__main__":
         radius = 50000
         n_samples = 200
         combined = True
-        seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
+        if not combined:
+            seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
+        else:
+            seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius)
 
         print(training_folders)
         print(test_folders)
         print(seg_model_path)
         print("M:", M)
         print("Rad:", radius)
+        print("Comb:", combined)
 
         model_p = "mixed_no_{}".format(testing_p)
         rdf_hs = load_hs_model(model_p, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs, combined=combined)
@@ -233,15 +237,20 @@ if __name__ == "__main__":
             total += 1
 
             #dmap_img = (ip.normalize(dmap)*255).astype('uint8')
-            # cv2.imshow("Masks", comb)
             # cv2.imshow("DMap", dmap_img)
-            # if cv2.waitKey(1) == ord('q'):
-            #   break
+            cv2.imshow("Masks", comb)
+            if cv2.waitKey(1) == ord('q'):
+              break
 
-        # cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
         print("Avg Accuracy:", result_stats["accuracy"]/total)
         print("Avg Precision:", result_stats["precision"] / total)
         print("Avg Recall:", result_stats["recall"] / total)
         print("Avg F:", result_stats["f"] / total)
+        print()
+        print("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(result_stats["accuracy"] / total,
+                                                              result_stats["precision"][0] / total, result_stats["precision"][1] / total, result_stats["precision"][2] / total,
+                                                              result_stats["recall"][0] / total,    result_stats["recall"][1] / total,    result_stats["recall"][2] / total,
+                                                              result_stats["f"][0] / total,         result_stats["f"][1] / total,         result_stats["f"][2] / total))
         print()
         print()
