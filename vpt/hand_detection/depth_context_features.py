@@ -130,7 +130,7 @@ def pixels2points(depth_map, sample_mask):
     z = np.expand_dims(z, axis=0)
     z /= unit      # convert to meters
 
-    pixels = np.indices( depth_map.shape, dtype=float )
+    d
     x = pixels[1, :, :][sample_mask]
     y = pixels[0, :, :][sample_mask]
 

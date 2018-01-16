@@ -4,19 +4,24 @@ sys.path.append("./")
 from sklearn.ensemble import RandomForestClassifier
 
 from vpt.common import *
-import vpt.hand_detection.depth_context_features as dcf
+# import vpt.hand_detection.depth_context_features as dcf
+import vpt.hand_detection.depth_image_features as dcf
 import vpt.settings as s
 
 
 class RDFSegmentationModel():
 
-    def __init__(self, M, radius, n_samples=500, n_estimators=10, max_depth=20):
+    def __init__(self, M, radius, n_samples=500, n_estimators=10, max_depth=20, combined=False):
 
         self._M = M
         self._radius = radius
         self._n_samples = n_samples
+        self._combined = combined
 
         self._offsets = dcf.generate_feature_offsets(self._M, self._radius)
+        self._offsets2 = None
+        if self._combined :
+            self._offsets2 = dcf.generate_feature_offsets(self._M, self._radius/5)
 
         self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=4)
 
@@ -56,11 +61,13 @@ class RDFSegmentationModel():
             # print ("RH", np.array(rh_results[0]).shape)
 
             # check if masks ok
-            if np.array(lh_results[0]).shape != (self._n_samples, len(self._offsets)):
+            shape_check = (self._n_samples, self._offsets.shape[1]) if not self._combined else (self._n_samples, self._offsets.shape[1]*2)
+            if np.array(lh_results[0]).shape != shape_check:
                 print("Invalid LH Mask in file {}".format(fpath))
+                print(np.array(lh_results[0]).shape)
                 continue
 
-            if np.array(rh_results[0]).shape != (self._n_samples, len(self._offsets)):
+            if np.array(rh_results[0]).shape != shape_check:
                 print("Invalid RH Mask in file {}".format(fpath))
                 continue
 
@@ -106,9 +113,13 @@ class RDFSegmentationModel():
         mask_shape = (depth_map.shape[0], depth_map.shape[1], 3)
         mask = np.zeros(mask_shape, dtype="uint8")
 
-        all_features1 = dcf.calc_features(depth_map, self._offsets)
+        X = dcf.calc_features(depth_map, self._offsets)
 
-        p = self._clf.predict(np.array(all_features1).squeeze())
+        if self._combined:
+            X2 = dcf.calc_features(depth_map, self._offsets2)
+            X = np.hstack((X, X2))
+
+        p = self._clf.predict(np.array(X).squeeze())
         p = p.reshape(depth_map.shape)
 
         mask[:, :, s.LH][p == s.LH_LBL] = 255
@@ -141,7 +152,12 @@ class RDFSegmentationModel():
 
         sample_mask[sample_pixels[:, 1:], sample_pixels[:, :1]] = True
 
+
         X = dcf.calc_features(orig, offsets, sample_mask)
+        if self._combined:
+            X2= dcf.calc_features(orig, self._offsets2, sample_mask)
+            X = np.hstack((X, X2))
+
         y = np.ones((X.shape[0],))*label
 
         end_time = time.time()
@@ -159,8 +175,8 @@ if __name__ == "__main__":
     s.participant = "mix"
     s.sensor = "realsense"
 
-    training_participants = ["p1", "p2", "p3", "p4", "p6"]
-    data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
+    training_participants = ["p2", "p1", "p3", "p4", "p6"]
+    data_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
     test_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
 
     for testing_p in training_participants:
@@ -173,9 +189,10 @@ if __name__ == "__main__":
         cs = CompressedStream(training_folders)
 
         refresh = True
-        M = 7
-        radius = .3
+        M = 50
+        radius = 50000
         n_samples = 200
+        combined = True
         seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
 
         print(training_folders)
@@ -185,7 +202,7 @@ if __name__ == "__main__":
         print("Rad:", radius)
 
         model_p = "mixed_no_{}".format(testing_p)
-        rdf_hs = load_hs_model(model_p, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs)
+        rdf_hs = load_hs_model(model_p, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs, combined=combined)
 
         print("\n## Testing Model...", flush=True)
         cs_test = CompressedStream(test_folder)
@@ -203,13 +220,13 @@ if __name__ == "__main__":
             #print ("Accuracy:", accuracy)
             total += 1
 
-            # dmap_img = (ip.normalize(dmap)*255).astype('uint8')
-            # cv2.imshow("Masks", comb)
+            dmap_img = (ip.normalize(dmap)*255).astype('uint8')
+            cv2.imshow("Masks", comb)
             # cv2.imshow("DMap", dmap_img)
-            # if cv2.waitKey(1) == ord('q'):
-            #   break
+            if cv2.waitKey(1) == ord('q'):
+              break
 
-        # cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
         print ("Avg Accuracy:", avg_accuracy/total)
         print()
         print()
