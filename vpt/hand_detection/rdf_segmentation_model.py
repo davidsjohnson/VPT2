@@ -181,7 +181,7 @@ if __name__ == "__main__":
 
     for testing_p in training_participants:
 
-        print("#### Testing Participant {} ####".format(testing_p))
+        print("#### Testing Participant {} ####".format(testing_p), flush=True)
 
         training_folders = [folder for p, folder in data_folders.items() if p != testing_p]
         test_folder = [test_folders[testing_p]]
@@ -193,7 +193,11 @@ if __name__ == "__main__":
         radius = 50000
         n_samples = 200
         combined = True
-        seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
+        if not combined:
+            seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
+        else:
+            seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius)
+
 
         print(training_folders)
         print(test_folders)
