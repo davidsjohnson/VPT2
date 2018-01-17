@@ -4,24 +4,25 @@ sys.path.append("./")
 from sklearn.ensemble import RandomForestClassifier
 
 from vpt.common import *
-# import vpt.hand_detection.depth_context_features as dcf
-import vpt.hand_detection.depth_image_features as dcf
 import vpt.settings as s
 
 
 class RDFSegmentationModel():
 
-    def __init__(self, M, radius, n_samples=500, n_estimators=10, max_depth=20, combined=False):
+    def __init__(self, M, radius, offset_gen, feature_gen, n_samples=500, n_estimators=10, max_depth=20, combined=False):
 
         self._M = M
         self._radius = radius
         self._n_samples = n_samples
         self._combined = combined
 
-        self._offsets = dcf.generate_feature_offsets(self._M, self._radius)
+        self._offset_gen = offset_gen
+        self._feature_gen = feature_gen
+
+        self._offsets = self._offset_gen(self._M, self._radius)
         self._offsets2 = None
         if self._combined:
-            self._offsets2 = dcf.generate_feature_offsets(self._M, self._radius/5)
+            self._offsets2 = self._offset_gen(self._M, self._radius/5)
 
         self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=6)
 
@@ -61,7 +62,11 @@ class RDFSegmentationModel():
             # print ("RH", np.array(rh_results[0]).shape)
 
             # check if masks ok
-            shape_check = (self._n_samples, self._offsets.shape[1]) if not self._combined else (self._n_samples, self._offsets.shape[1]*2)
+            if len(self._offsets.shape) == 3:
+                shape_check = (self._n_samples, self._offsets.shape[1]) if not self._combined else (self._n_samples, self._offsets.shape[1]*2)
+            else:
+                shape_check = (self._n_samples, self._offsets.shape[0])
+
             if np.array(lh_results[0]).shape != shape_check:
                 print("Invalid LH Mask in file {}".format(fpath))
                 print(np.array(lh_results[0]).shape)
@@ -113,10 +118,10 @@ class RDFSegmentationModel():
         mask_shape = (depth_map.shape[0], depth_map.shape[1], 3)
         mask = np.zeros(mask_shape, dtype="uint8")
 
-        X = dcf.calc_features(depth_map, self._offsets)
+        X = self._feature_gen(depth_map, self._offsets)
 
         if self._combined:
-            X2 = dcf.calc_features(depth_map, self._offsets2)
+            X2 = self._feature_gen(depth_map, self._offsets2)
             X = np.hstack((X, X2))
 
         p = self._clf.predict(np.array(X).squeeze())
@@ -153,9 +158,9 @@ class RDFSegmentationModel():
         sample_mask[sample_pixels[:, 1:], sample_pixels[:, :1]] = True
 
 
-        X = dcf.calc_features(orig, offsets, sample_mask)
+        X = self._feature_gen(orig, offsets, sample_mask)
         if self._combined:
-            X2= dcf.calc_features(orig, self._offsets2, sample_mask)
+            X2 = self._feature_gen(orig, self._offsets2, sample_mask)
             X = np.hstack((X, X2))
 
         y = np.ones((X.shape[0],))*label
@@ -172,31 +177,72 @@ if __name__ == "__main__":
     from vpt.streams.compressed_stream import CompressedStream
     from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
+    import vpt.hand_detection.depth_image_features as dif
+    import vpt.hand_detection.depth_context_features as dcf
+
+    import argparse
+
+    parser = argparse.ArgumentParser("Train and test the RDF Hand Segmentation model")
+    parser.add_argument("-a", "--augmented", action="store_true", help="Flag to indicate if the large augmented dataset should be used for training",
+                        default=False)
+    parser.add_argument("-c", "--combined", action="store_true", help="Flag to indicate if a combined feature set should be used (only applies to DIF)",
+                        default=False)
+    parser.add_argument("-r", "--refresh", action="store_true", help="Flag to indicate if saved model should be refreshed (ie regenerated)",
+                        default=False)
+    parser._action_groups.pop()
+    required = parser.add_argument_group('required arguments')
+    required.add_argument("-f", "--feature-type", type=str, help="Enter 'dcf' to use depth context features or 'dif' to use depth image features",
+                          metavar="<feature type>", required=True)
+    required.add_argument("-m", "--M", type=int, help="Influences the number of features per pixel. With DCF it represents the number of offsets from center.  With DIF it represents the number of features",
+                          metavar="<M>", required=True)
+    required.add_argument("-s", "--radius-size", type=float, help="Radius from each pixel to extract features",
+                          metavar="<radius>", required=True)
+    required.add_argument("-n", "--n-samples", type=int, help="Number of samples to use for each pixel class per image when training",
+                          metavar="<num samples>", required=True)
+
+
+    args = parser.parse_args()
+
+    # Setup some general parameters
     s.participant = "mix"
     s.sensor = "realsense"
-
     training_participants = ["p1", "p2", "p3", "p4", "p6"]
-    data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
+
+    # which data folder to use depends on weather or not we are using the augmented dataset
+    if args.augmented:
+        data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
+    else:
+        data_folders = {p: "data/rdf/testing/{}".format(p) for p in training_participants}
+
     test_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
 
+    # Perform leave one out training and testing for each available participant
     for testing_p in training_participants:
+        # Setting up Parameters for RDF Model and training
+        if args.feature_type == "dif":
+            offset_gen = dif.generate_feature_offsets
+            feature_gen = dif.calc_features
+        else:
+            offset_gen = dcf.generate_feature_offsets
+            feature_gen = dcf.calc_features
 
-        print("#### Testing Participant {} ####".format(testing_p), flush=True)
+        refresh = args.refresh
+        M = args.M
+        radius = args.radius_size
+        n_samples = args.n_samples
+        combined = args.combined
+        if not combined:
+            seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
+        else:
+            seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius)
+
+
+        print("#### Testing Participant {} ####".format(testing_p))
 
         training_folders = [folder for p, folder in data_folders.items() if p != testing_p]
         test_folder = [test_folders[testing_p]]
 
         cs = CompressedStream(training_folders)
-
-        refresh = True
-        M = 50
-        radius = 50000
-        n_samples = 200
-        combined = True
-        if not combined:
-            seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
-        else:
-            seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius)
 
         print(training_folders)
         print(test_folders)
@@ -204,9 +250,10 @@ if __name__ == "__main__":
         print("M:", M)
         print("Rad:", radius)
         print("Comb:", combined)
+        print("Loading Model...", flush=True)
 
         model_p = "mixed_no_{}".format(testing_p)
-        rdf_hs = load_hs_model(model_p, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs, combined=combined)
+        rdf_hs = load_hs_model(model_p, offset_gen, feature_gen, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs, combined=combined)
 
         print("\n## Testing Model...", flush=True)
         cs_test = CompressedStream(test_folder)

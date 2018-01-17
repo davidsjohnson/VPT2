@@ -32,7 +32,7 @@ def generate_feature_offsets(M, radius):
             feature_point = [x, y, 0]
             feature_offsets.append(feature_point)
 
-    return feature_offsets
+    return np.array(feature_offsets)
 
 
 def calc_features(depth_map, offsets, sample_mask = None):
@@ -130,7 +130,7 @@ def pixels2points(depth_map, sample_mask):
     z = np.expand_dims(z, axis=0)
     z /= unit      # convert to meters
 
-    d
+    pixels = np.indices( depth_map.shape, dtype=float )
     x = pixels[1, :, :][sample_mask]
     y = pixels[0, :, :][sample_mask]
 

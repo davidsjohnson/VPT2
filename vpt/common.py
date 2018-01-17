@@ -14,7 +14,7 @@ import vpt.utils.image_processing as ip
 
 DMAP_MAX_VAL = 1300
 
-def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_model_path, masks="cae_masks", ms=None, combined=False):
+def load_hs_model(participant, offset_gen, feature_gen, M, radius, n_samples , refresh, segmentation_model_path, masks="cae_masks", ms=None, combined=False):
     from vpt.hand_detection.rdf_segmentation_model import RDFSegmentationModel
     from vpt.streams.mask_stream import MaskStream
 
@@ -24,7 +24,7 @@ def load_hs_model(participant, M, radius, n_samples , refresh, segmentation_mode
             rdf_hs = pickle.load(f)
     else:
         print ("Hand segmentation model doesn't exist: %s.  Loading data and training new model..." % (segmentation_model_path))
-        rdf_hs =RDFSegmentationModel(M, radius, n_samples, combined=combined)
+        rdf_hs =RDFSegmentationModel(M, radius, offset_gen, feature_gen, n_samples, combined=combined)
         if ms == None:
             ms = MaskStream(os.path.join("data/rdf", participant, masks, "masks"))
 
