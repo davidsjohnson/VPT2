@@ -77,15 +77,21 @@ def generate_datasets(test_participant, M, radius, n_samples, feature_type):
 
 def main():
 
+    import vpt.hand_detection.depth_context_features as dcf
+    import vpt.hand_detection.depth_image_features as dif
+
     s.participant = "mix"
     s.sensor = "realsense"
+
+    feature_modules = [dcf, dif]
 
     Ms = [5]
     radii = [.07]
     feature_types = ["hog"]
+    n_samples = 200
 
     for feature_type in feature_types:
         for test_participant in PARTICIPANTS:
             for M in Ms:
                 for radius in radii:
-                    generate_datasets(test_participant, M, radius, 200, feature_type)
+                    generate_datasets(test_participant, M, radius, n_samples, feature_type)
