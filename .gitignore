@@ -11,4 +11,5 @@ vpt2_py3/
 core*
 tmp.npy
 vpt/utils/data_scripts/*.npy
+py3_vpt/
 *~

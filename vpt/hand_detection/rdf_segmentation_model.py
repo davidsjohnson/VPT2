@@ -9,7 +9,7 @@ import vpt.settings as s
 
 class RDFSegmentationModel():
 
-    def __init__(self, M, radius, offset_gen, feature_gen, n_samples=500, n_estimators=10, max_depth=20, combined=False):
+    def __init__(self, M, radius, offset_gen, feature_gen, n_samples=500, n_estimators=10, max_depth=20, n_jobs=1, combined=False):
 
         self._M = M
         self._radius = radius
@@ -24,7 +24,7 @@ class RDFSegmentationModel():
         if self._combined:
             self._offsets2 = self._offset_gen(self._M, self._radius/5)
 
-        self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=6)
+        self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=n_jobs)
 
 
     def generate_dataset(self, ms):
@@ -191,6 +191,8 @@ if __name__ == "__main__":
                         default=False)
     parser.add_argument("-d", "--display", action="store_true", help="Flag to indicate generated masks should be displayed",
                         default=False)
+    parser.add_argument("-j", "--n_jobs", type=int, help="Number of jobs for RDF training and prediction",
+                        metavar="<num jobs>", default=1)
     parser._action_groups.pop()
     required = parser.add_argument_group('required arguments')
     required.add_argument("-f", "--feature-type", type=str, help="Enter 'dcf' to use depth context features or 'dif' to use depth image features",
@@ -255,7 +257,7 @@ if __name__ == "__main__":
         print("Loading Model...", flush=True)
 
         model_p = "mixed_no_{}".format(testing_p)
-        rdf_hs = load_hs_model(model_p, offset_gen, feature_gen, M, radius, n_samples, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs, combined=combined)
+        rdf_hs = load_hs_model(model_p, offset_gen, feature_gen, M, radius, n_samples, n_jobs=args.n_jobs, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs, combined=combined)
 
         print("\n## Testing Model...", flush=True)
         cs_test = CompressedStream(test_folder)
@@ -294,7 +296,7 @@ if __name__ == "__main__":
 
         if args.display:
             cv2.destroyAllWindows()
-            
+
         print("Avg Accuracy:", result_stats["accuracy"]/total)
         print("Avg Precision:", result_stats["precision"] / total)
         print("Avg Recall:", result_stats["recall"] / total)
