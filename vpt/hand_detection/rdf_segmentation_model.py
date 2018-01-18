@@ -189,6 +189,8 @@ if __name__ == "__main__":
                         default=False)
     parser.add_argument("-r", "--refresh", action="store_true", help="Flag to indicate if saved model should be refreshed (ie regenerated)",
                         default=False)
+    parser.add_argument("-d", "--display", action="store_true", help="Flag to indicate generated masks should be displayed",
+                        default=False)
     parser._action_groups.pop()
     required = parser.add_argument_group('required arguments')
     required.add_argument("-f", "--feature-type", type=str, help="Enter 'dcf' to use depth context features or 'dif' to use depth image features",
@@ -264,7 +266,6 @@ if __name__ == "__main__":
         for i, (mask, dmap, fpath) in enumerate(i_gen):
 
             p_mask = rdf_hs.generate_mask(dmap)
-            comb = np.vstack((p_mask, mask))
 
             y_true = np.zeros_like(dmap, dtype="uint8")
             y_true[mask[:, :, 0] > 0] = 1
@@ -283,13 +284,17 @@ if __name__ == "__main__":
             #print ("Accuracy:", accuracy)
             total += 1
 
-            #dmap_img = (ip.normalize(dmap)*255).astype('uint8')
-            # cv2.imshow("DMap", dmap_img)
-            cv2.imshow("Masks", comb)
-            if cv2.waitKey(1) == ord('q'):
-              break
+            if args.display:
+                #dmap_img = (ip.normalize(dmap)*255).astype('uint8')
+                # cv2.imshow("DMap", dmap_img)
+                comb = np.vstack((p_mask, mask))
+                cv2.imshow("Masks", comb)
+                if cv2.waitKey(1) == ord('q'):
+                  break
 
-        cv2.destroyAllWindows()
+        if args.display:
+            cv2.destroyAllWindows()
+            
         print("Avg Accuracy:", result_stats["accuracy"]/total)
         print("Avg Precision:", result_stats["precision"] / total)
         print("Avg Recall:", result_stats["recall"] / total)
