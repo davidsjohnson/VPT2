@@ -24,7 +24,7 @@ class RDFSegmentationModel():
         if self._combined:
             self._offsets2 = self._offset_gen(self._M, self._radius/5)
 
-        self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=4)
+        self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=6)
 
 
     def generate_dataset(self, ms):
