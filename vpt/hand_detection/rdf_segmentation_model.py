@@ -24,7 +24,6 @@ class RDFSegmentationModel():
         if self._combined:
             self._offsets2 = self._offset_gen(self._M, self._radius/5)
 
-        print("N Jobs", n_jobs)
         self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=n_jobs)
 
 
@@ -216,8 +215,10 @@ if __name__ == "__main__":
     # which data folder to use depends on weather or not we are using the augmented dataset
     if args.augmented:
         data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
+        base_model_folder = "datea/rdf/trainedmodels/augmented/"
     else:
         data_folders = {p: "data/rdf/testing/{}".format(p) for p in training_participants}
+        base_model_folder = "datea/rdf/trainedmodels/"
 
     test_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
 
@@ -236,11 +237,13 @@ if __name__ == "__main__":
         radius = args.radius_size
         n_samples = args.n_samples
         combined = args.combined
-        if not combined:
-            seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
-        else:
-            seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius)
 
+        if not combined:
+            seg_model_path = os.path.join(base_model_folder, "{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius))
+            # seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
+        else:
+            seg_model_path = os.path.join(base_model_folder, "{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius))
+            #seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius)
 
         print("#### Testing Participant {} ####".format(testing_p))
 
