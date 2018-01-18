@@ -1,4 +1,5 @@
 import sys
+import math
 sys.path.append("./")
 from vpt.common import *
 import vpt.settings as s
@@ -11,6 +12,32 @@ import time
 # http://ieeexplore.ieee.org/abstract/document/6740010/
 
 def generate_feature_offsets(M, radius):
+
+    ratio = .2
+
+    c0 = M / (radius + (ratio - 1) * radius / 2)
+    k = (ratio - 1) * c0 / radius
+
+    feature_offsets = []
+
+    for i in range(-M, M+1):
+        for j in range(-M, M+1):
+
+            si = 1 if i > 0 else -1
+            sj = 1 if j > 0 else -1
+            vi = abs(1.0 * i)
+            vj = abs(1.0 * j)
+            if (i == 0 and j == 0):
+                continue
+
+            x = sj * (-c0 + math.sqrt(c0 * c0 + 4 * vj * k / 2)) / k
+            y = si * (-c0 + math.sqrt(c0 * c0 + 4 * vi * k / 2)) / k
+
+            feature_offsets.append([x, y, 0])
+
+    return np.array(feature_offsets)
+
+def generate_feature_offsets_non(M, radius):
     '''
         Generates offset points in real world space for depth
         context features from a given point.
@@ -148,3 +175,19 @@ def pixels2points(depth_map, sample_mask):
     y = z * y
 
     return np.moveaxis(np.concatenate((x, y, z)), 0, 1)
+
+
+def plot_offsets(offsets):
+
+    plt.scatter(offsets[:, 0], offsets[:, 1])
+    plt.show()
+
+if __name__ == '__main__':
+
+    # x = np.linspace(0,10, 1000)
+    # y = g(x)
+    # plt.plot(x, y)
+    # plt.show()
+
+    offsets = generate_feature_offsets(4, .1)
+    plot_offsets(offsets)
