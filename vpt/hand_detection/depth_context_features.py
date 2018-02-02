@@ -15,6 +15,7 @@ def generate_feature_offsets(M, radius):
 
     ratio = .2
 
+
     c0 = M / (radius + (ratio - 1) * radius / 2)
     k = (ratio - 1) * c0 / radius
 
@@ -87,7 +88,7 @@ def calc_features(depth_map, offsets, sample_mask = None):
     features[pixels[:, :, 1] == -1] = 0
     features[pixels[:, :, 0] == -1] = 0
 
-    return features
+    return features, pixels
 
 
 def points2pixels(points, depth_data=False):

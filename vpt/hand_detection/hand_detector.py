@@ -36,7 +36,7 @@ class HandDetector():
         else:
             mask = self._hs_model.generate_mask(depthmap)
 
-        mask = cv2.GaussianBlur(mask, 5, sigmaX=0, sigmaY=0)
+        mask = cv2.GaussianBlur(mask, (5,5), sigmaX=0, sigmaY=0)
 
         # get bounding boxes of hands from mask
         lh_box = self.get_bounding_box(mask[:, :, s.LH].copy())  # added .copy() to remove error with findContours

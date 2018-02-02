@@ -9,7 +9,7 @@ import vpt.settings as s
 
 class RDFSegmentationModel():
 
-    def __init__(self, M, radius, offset_gen, feature_gen, n_samples=500, n_estimators=10, max_depth=20, n_jobs=1, combined=False):
+    def __init__(self, M, radius, offset_gen, feature_gen, n_samples=500, n_estimators=10, max_depth=20, n_jobs=1, combined=False): # og est=10 depth=20
 
         self._M = M
         self._radius = radius
@@ -25,6 +25,13 @@ class RDFSegmentationModel():
             self._offsets2 = self._offset_gen(self._M, self._radius/5)
 
         self._clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, n_jobs=n_jobs)
+
+
+    def num_features(self):
+        if not self._combined:
+            return len(self._offsets)
+        else:
+            return len(self._offsets) + len(self._offsets2_)
 
 
     def generate_dataset(self, ms):
@@ -113,12 +120,26 @@ class RDFSegmentationModel():
         return self._clf.predict(X)
 
 
+    def generate_test_data(self, dmap, mask):
+
+        y = np.zeros_like(dmap)
+        y[mask[:, :, 0]==255] = 1
+        y[mask[:, :, 1]==255] = 2
+
+        X, _ = self._feature_gen(dmap, self._offsets)
+
+        if self._combined:
+            X2 = self._feature_gen(dmap, self._offsets2)
+            X = np.hstack((X, X2))
+
+        return X, y.ravel()
+
     def generate_mask(self, depth_map):
 
         mask_shape = (depth_map.shape[0], depth_map.shape[1], 3)
         mask = np.zeros(mask_shape, dtype="uint8")
 
-        X = self._feature_gen(depth_map, self._offsets)
+        X,_ = self._feature_gen(depth_map, self._offsets)
 
         if self._combined:
             X2 = self._feature_gen(depth_map, self._offsets2)
@@ -158,7 +179,7 @@ class RDFSegmentationModel():
         sample_mask[sample_pixels[:, 1:], sample_pixels[:, :1]] = True
 
 
-        X = self._feature_gen(orig, offsets, sample_mask)
+        X,_ = self._feature_gen(orig, offsets, sample_mask)
         if self._combined:
             X2 = self._feature_gen(orig, self._offsets2, sample_mask)
             X = np.hstack((X, X2))
@@ -215,10 +236,10 @@ if __name__ == "__main__":
     # which data folder to use depends on weather or not we are using the augmented dataset
     if args.augmented:
         data_folders = {p : "data/rdf/training/{}".format(p) for p in training_participants}
-        base_model_folder = "datea/rdf/trainedmodels/augmented/"
+        base_model_folder = "data/rdf/trainedmodels/augmented/"
     else:
         data_folders = {p: "data/rdf/testing/{}".format(p) for p in training_participants}
-        base_model_folder = "datea/rdf/trainedmodels/"
+        base_model_folder = "data/rdf/trainedmodels/"
 
     test_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
 
@@ -238,16 +259,20 @@ if __name__ == "__main__":
         n_samples = args.n_samples
         combined = args.combined
 
+        # model_p = "mixed_no_{}".format(testing_p)
+        model_p = "mixed_all_participants"
+
         if not combined:
-            seg_model_path = os.path.join(base_model_folder, "{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius))
+            seg_model_path = os.path.join(base_model_folder, "{:s}_M{:d}_rad{:0.2f}".format("{}".format(model_p), M, radius))
             # seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
         else:
-            seg_model_path = os.path.join(base_model_folder, "{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius))
+            seg_model_path = os.path.join(base_model_folder, "{:s}_M{:d}_rad{:0.2f}_comb".format("{}".format(model_p), M, radius))
             #seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius)
 
         print("#### Testing Participant {} ####".format(testing_p))
 
-        training_folders = [folder for p, folder in data_folders.items() if p != testing_p]
+        # training_folders = [folder for p, folder in data_folders.items() if p != testing_p]
+        training_folders = [folder for p, folder in data_folders.items()]
         test_folder = [test_folders[testing_p]]
 
         cs = CompressedStream(training_folders)
@@ -260,7 +285,6 @@ if __name__ == "__main__":
         print("Comb:", combined)
         print("Loading Model...", flush=True)
 
-        model_p = "mixed_no_{}".format(testing_p)
         rdf_hs = load_hs_model(model_p, offset_gen, feature_gen, M, radius, n_samples, n_jobs=args.n_jobs, refresh=refresh, segmentation_model_path=seg_model_path, ms=cs, combined=combined)
 
         print("\n## Testing Model...", flush=True)
@@ -295,7 +319,7 @@ if __name__ == "__main__":
                 # cv2.imshow("DMap", dmap_img)
                 comb = np.vstack((p_mask, mask))
                 cv2.imshow("Masks", comb)
-                if cv2.waitKey(1) == ord('q'):
+                if cv2.waitKey(0) == ord('q'):
                   break
 
         if args.display:

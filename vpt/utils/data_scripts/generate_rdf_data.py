@@ -12,10 +12,10 @@ from vpt.hand_detection.hand import Hand
 import vpt.settings as s
 
 
-# MASK_FOLDERS = {"p1" : "data/rdf/p1/seq_masks", "p2" : "data/rdf/p2/seq_masks", "p3" : "data/rdf/p3/seq_masks",
-#                 "p4" : "data/rdf/p4/seq_masks", "p6" : "data/rdf/p6/seq_masks"}
+MASK_FOLDERS = {"p1" : "data/rdf/p1/seq_masks", "p2" : "data/rdf/p2/seq_masks", "p3" : "data/rdf/p3/seq_masks",
+                "p4" : "data/rdf/p4/seq_masks", "p6" : "data/rdf/p6/seq_masks"}
 
-MASK_FOLDERS = {"p2" : "data/rdf/p2/seq_masks"}
+# MASK_FOLDERS = {"p2" : "data/rdf/p2/seq_masks"}
 
 
 def get_bounding_box(mask):
@@ -58,8 +58,6 @@ def transform_hands(lh, rh, dmap_bkgd, transform_func, *args, **kwargs):
     dmap_lh_trans = transform_func(lh.get_hand_img(), *args, **kwargs)
     dmap_rh_trans = transform_func(rh.get_hand_img(), *args, **kwargs)
 
-
-
     ## place hands on background image; anchored at bottom left of original hand box location
     # get new X and Y coords such that transformed dmap is anchored to bottom left
     x1_lh = lh.hand_box()[0] + lh.hand_box()[2] - dmap_lh_trans.shape[1]
@@ -79,7 +77,7 @@ def transform_hands(lh, rh, dmap_bkgd, transform_func, *args, **kwargs):
     #if y1_lh is less than zero truncate hand box
     if y1_lh < 0:
         dmap_lh_trans = dmap_lh_trans[abs(y1_lh) : , : ]
-        y1_lh = 10
+        y1_lh = 0
 
     # if x2_rh is greater than background width than shift left to fit
     if x1_rh + dmap_rh_trans.shape[1] > dmap_bkgd.shape[1]:
@@ -88,7 +86,7 @@ def transform_hands(lh, rh, dmap_bkgd, transform_func, *args, **kwargs):
     #if y1_rh is less than zero truncate hand box
     if y1_rh < 0:
         dmap_rh_trans = dmap_rh_trans[abs(y1_rh) : , : ]
-        y1_rh = 10
+        y1_rh = 0
 
     # if y1 + height is greater than dmap height shift up
     if y1_lh + dmap_lh_trans.shape[0] > dmap_bkgd.shape[0]:
@@ -125,17 +123,17 @@ def transform_hands(lh, rh, dmap_bkgd, transform_func, *args, **kwargs):
 
 def main():
 
-    base_folder = "data/rdf/training"
+    base_folder = "data/rdf/training-rand"
     s.sensor = "realsense"
 
-    scale_factors = [.75, .875, 1.125, 1.25]
+    # scale_factors = [.75, .875, 1.125, 1.25]
 
     for participant, folder in MASK_FOLDERS.items():
 
         print("#### Creating Data For {} ####".format(participant))
         s.participant = participant
         fs = MaskStream(MASK_FOLDERS[s.participant])
-        # dmap_bkgd = load_depthmap("data/backgrounds/{}/{}bs/000240.bin".format(s.participant, s.participant), "bin", False)
+        dmap_bkgd = load_depthmap("data/backgrounds/{}/{}bs/000240.bin".format(s.participant, s.participant), "bin", False)
 
         i = 0
         mgen = fs.img_generator()
@@ -154,12 +152,12 @@ def main():
 
                 mask = tmp_mask
 
-            dmap_bkgd = dmap.copy()
-            dmap_bkgd[mask[:, :, s.LH] > 0] = 0
-            dmap_bkgd[mask[:, :, s.RH] > 0] = 0
+            # dmap_bkgd = dmap.copy()
+            # dmap_bkgd[mask[:, :, s.LH] > 0] = 0
+            # dmap_bkgd[mask[:, :, s.RH] > 0] = 0
 
             bkgd_img = (ip.normalize(dmap_bkgd) * 255).astype('uint8')
-            cv2.imshow("BACKGROUND",bkgd_img)
+            # cv2.imshow("BACKGROUND",bkgd_img)
 
             # save original to training data folder
             fname = "{:06d}.npz".format(i)
@@ -175,24 +173,29 @@ def main():
             rh = Hand(mask[:, :, s.RH], dmap, rh_box, fpath)
 
             # apply transformations to each image
-            for x in scale_factors:
-                for y in scale_factors:
-                    for z in scale_factors:
-                        try:
-                            dmap_new, mask_new = transform_hands(lh, rh, dmap_bkgd, transform_func=scale, scale=(y, x), zfactor=z, preserve_range=True, order=0)
+            # for x in scale_factors:
+            #     for y in scale_factors:
+            #         for z in scale_factors:
 
-                            # save transformation
-                            fname = "{:06d}.npz".format(i)
-                            fpath = os.path.join(base_folder, s.participant, fname)
-                            np.savez_compressed(fpath, dmap=dmap_new, mask=mask_new)
-                            i += 1
+            for j in range(50):
 
-                            dmap_img = (ip.normalize(dmap_new) * 255).astype('uint8')
-                            cv2.imshow("NEW DMAP", dmap_img)
-                            if cv2.waitKey() == ord('q'):
-                                break
-                        except IndexError as e:
-                            print("Error Creating transformation:", e)
+                x, y, z = np.random.rand(3) * .5 + .75  # random in the range of .75 to 1.25
+
+                try:
+                    dmap_new, mask_new = transform_hands(lh, rh, dmap_bkgd, transform_func=scale, scale=(y, x), zfactor=z, preserve_range=True, order=0)
+
+                    # save transformation
+                    fname = "{:06d}.npz".format(i)
+                    fpath = os.path.join(base_folder, s.participant, fname)
+                    np.savez_compressed(fpath, dmap=dmap_new, mask=mask_new)
+                    i += 1
+
+                    # dmap_img = (ip.normalize(dmap_new) * 255).astype('uint8')
+                    # cv2.imshow("NEW DMAP", dmap_img)
+                    # if cv2.waitKey(30) == ord('q'):
+                    #     break
+                except IndexError as e:
+                    print("Error Creating transformation:", e)
 
 
 if __name__ == '__main__':

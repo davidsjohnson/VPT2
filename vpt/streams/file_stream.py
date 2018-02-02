@@ -3,9 +3,12 @@ from vpt.settings import *
 
 class FileStream:
 
-    def __init__(self, folder, ftype="bin", annotations=None, normalize=False, ignore=False):
+    def __init__(self, folders, ftype="bin", annotations=None, normalize=False, ignore=False):
 
-        self._folder = folder
+        if type(folders) is str:
+            self._folders = [folders]
+        else:
+            self._folders = folders
         self._ftype = ftype
         self._fpaths = []
         self._annotations = annotations
@@ -21,28 +24,30 @@ class FileStream:
 
 
     def load_filenames(self):
-        for root, dirs, files in os.walk(self._folder, followlinks=True):
-            for fname in files:
-                if self._ftype in fname and "background" not in root:  # exclude folders with background in name
-                    fpath = os.path.join(root, fname)
 
-                    if self._strip:
-                        try:
-                            labels = (None, None)
-                            if self._annotations != None:
-                                key = getFileKey(fpath)
-                                labels = self._annotations[key]
-                                if self._ignore:
-                                    if labels[0] in ANNOTATIONS and labels[1] in ANNOTATIONS:
+        for folder in self._folders:
+            for root, dirs, files in os.walk(folder, followlinks=True):
+                for fname in files:
+                    if self._ftype in fname and "background" not in root:  # exclude folders with background in name
+                        fpath = os.path.join(root, fname)
+
+                        if self._strip:
+                            try:
+                                labels = (None, None)
+                                if self._annotations != None:
+                                    key = getFileKey(fpath)
+                                    labels = self._annotations[key]
+                                    if self._ignore:
+                                        if labels[0] in ANNOTATIONS and labels[1] in ANNOTATIONS:
+                                            self._fpaths.append(fpath)
+                                    else:
                                         self._fpaths.append(fpath)
-                                else:
-                                    self._fpaths.append(fpath)
-                        except KeyError as e:
-                            print("Key Error: Key {} doesn't exist in annotations".format(e))
-                        except Exception as e:
-                            print ("Error Loading Files:", e)
-                    else:
-                        self._fpaths.append(fpath)
+                            except KeyError as e:
+                                print("Key Error: Key {} doesn't exist in annotations".format(e))
+                            except Exception as e:
+                                print ("Error Loading Files:", e)
+                        else:
+                            self._fpaths.append(fpath)
 
         print ("# Files Loaded:", len(self._fpaths))
 
