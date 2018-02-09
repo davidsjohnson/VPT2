@@ -10,7 +10,7 @@ def hog(img, visualise=False):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         img = resize(img, (180,180))
-        return skhog(img, orientations=8, pixels_per_cell=(16,16), cells_per_block=(1,1), visualise=visualise)
+        return skhog(img, orientations=9, pixels_per_cell=(16,16), cells_per_block=(4,4), block_norm="L1-sqrt", visualise=visualise)
 
 
 def sliced_hog(img, n_slices=20, visualise=False):
@@ -18,7 +18,7 @@ def sliced_hog(img, n_slices=20, visualise=False):
         warnings.simplefilter("ignore")
         img = resize(img, (120, 90))
         cell_size = (img.shape[1], img.shape[0] / float(n_slices))
-        hog = skhog(img, orientations=8, pixels_per_cell=cell_size, cells_per_block=(1,1), visualise=visualise)
+        hog = skhog(img, orientations=9, pixels_per_cell=cell_size, cells_per_block=(1,4), block_norm="L1-sqrt", visualise=visualise)
 
 
     if visualise:

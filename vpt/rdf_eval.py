@@ -12,15 +12,15 @@ import vpt.hand_detection.depth_image_features as dif
 import vpt.hand_detection.depth_context_features as dcf
 
 # Training Parameters
-# Ms = np.array([4,5,6,7])
-# radii = np.linspace(.1, .3, 9)
-Ms = np.array([5])
-radii = np.array([.15])
+Ms = np.array([4,5,6,7])
+radii = np.linspace(.1, .3, 9)
+# Ms = np.array([5])
+# radii = np.array([.15])
 
 combined = False
 offset_gen = dcf.generate_feature_offsets
 feature_gen = dcf.calc_features
-refresh = False
+refresh = True
 n_samples = 750
 n_jobs = 1
 
@@ -50,8 +50,8 @@ for idx_rad, radius in enumerate(radii):
         avg_F = 0
         total = 0
 
-        # for testing_p in training_participants:
-        for testing_p in ["p1"]:
+        for testing_p in training_participants:
+        # for testing_p in ["p1"]:
 
             if not combined:
                 seg_model_path = os.path.join(base_model_folder, "{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius))

@@ -89,6 +89,8 @@ def load_depthmap(fpath, ftype="bin", normalize=False):
         else:
             raise Exception("Invalid Data", fpath, data.shape)
 
+        data = background_sub(data)
+
     else:
         raise ValueError("Invalid Sensor Type", s.sensor)
 
@@ -107,7 +109,7 @@ def background_sub(dmap):
 
     # if len(indexes) > 0:
     # thresh_val = hist[1][indexes[0]]
-    dmap_tmp[dmap_tmp > 790] = 0
+    dmap_tmp[dmap_tmp > 810] = 0
 
     return dmap_tmp
 

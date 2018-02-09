@@ -14,3 +14,4 @@ vpt/utils/data_scripts/*.npy
 py3_vpt/
 *~
 .ipynb_checkpoints/
+*.npz

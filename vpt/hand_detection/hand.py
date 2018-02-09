@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 
 class Hand:
 
@@ -21,6 +22,8 @@ class Hand:
 
         masked = self._depthmap.copy()
         masked[self._mask == 0] = 0
+
+        masked = cv2.GaussianBlur(masked, (3, 3), sigmaX=0, sigmaY=0)
 
         return masked[y1:y2, x1:x2]
 

@@ -244,7 +244,7 @@ if __name__ == "__main__":
     test_folders = {p : "data/rdf/testing/{}".format(p) for p in training_participants}
 
     # Perform leave one out training and testing for each available participant
-    for testing_p in training_participants:
+    for testing_p in ["p6"]:
         # Setting up Parameters for RDF Model and training
         if args.feature_type == "dif":
             offset_gen = dif.generate_feature_offsets
@@ -267,7 +267,7 @@ if __name__ == "__main__":
             # seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}".format("mixed_no_{}".format(testing_p), M, radius)
         else:
             seg_model_path = os.path.join(base_model_folder, "{:s}_M{:d}_rad{:0.2f}_comb".format("{}".format(model_p), M, radius))
-            #seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius)
+            # seg_model_path = "data/rdf/trainedmodels/{:s}_M{:d}_rad{:0.2f}_comb".format("mixed_no_{}".format(testing_p), M, radius)
 
         print("#### Testing Participant {} ####".format(testing_p))
 

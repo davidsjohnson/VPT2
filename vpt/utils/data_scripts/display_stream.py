@@ -23,8 +23,8 @@ def display_stream(fs):
 if __name__ == '__main__':
 
     s.sensor = "realsense"
-    folder = "data/rdf/p2/seq_masks"
-    ftype ="bmp"
+    folder = "data/posture/p1"
+    ftype ="bin"
     fs = FileStream(folder, ftype)
 
     display_stream(fs)
