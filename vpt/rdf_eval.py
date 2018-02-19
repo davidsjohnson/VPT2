@@ -11,18 +11,20 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support, roc
 import vpt.hand_detection.depth_image_features as dif
 import vpt.hand_detection.depth_context_features as dcf
 
-# Training Parameters
-Ms = np.array([4,5,6,7])
-radii = np.linspace(.1, .3, 9)
-# Ms = np.array([5])
-# radii = np.array([.15])
+# # DCF Training Parameters
+# Ms = np.array([4,5,6,7])
+# radii = np.linspace(.1, .3, 9)
+
+# RDF Training Parameters
+Ms = np.array([80, 120, 168, 224])
+radii = np.linspace(25000, 150000, 9)
 
 combined = False
-offset_gen = dcf.generate_feature_offsets
-feature_gen = dcf.calc_features
-refresh = True
+offset_gen = dif.generate_feature_offsets
+feature_gen = dif.calc_features
+refresh = False
 n_samples = 750
-n_jobs = 1
+n_jobs = 5
 
 # Setup some general settings
 s.participant = "mix"
@@ -114,4 +116,4 @@ for idx_rad, radius in enumerate(radii):
         avg_accs[idx_rad, idx_M] = avg_acc
         avg_Fs[idx_rad, idx_M] = avg_F
 
-np.savez("rdf_dcf_results.npz", accuracy=avg_accs, f_score=avg_Fs)
+np.savez("rdf_dif_results.npz", accuracy=avg_accs, f_score=avg_Fs)

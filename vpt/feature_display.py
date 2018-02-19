@@ -1,5 +1,6 @@
 import vpt.settings as s
 import vpt.hand_detection.depth_context_features as dcf
+import vpt.hand_detection.depth_image_features as dif
 from vpt.common import *
 from vpt.streams.file_stream import *
 from vpt.hand_detection.hand_generator import *
@@ -20,14 +21,14 @@ vis_rhs = []
 filenames = []
 
 ## RDF Parameters
-M = 5
+M = 100
 radius = .15
 
 ## Posture Detection Parameters
 feature_type = "shog"
 
 def save_data(X_lh, y_lh, X_rh, y_rh, filenames, M, radius, feature_type, data_type):
-    base = "data/posture/extracted/"
+    base = "data\\posture\\extracted\\"
 
     data_path = os.path.join(base, "{}_M{}_rad{:0.2f}_{}_".format("all_participants2", M, radius, feature_type))
     np.savez_compressed(data_path + data_type + "_data.npz", X_lh=X_lh, y_lh=y_lh, X_rh=X_rh, y_rh=y_rh,
@@ -41,7 +42,7 @@ def init_hg(folders, testing_p, annotation_file, offset_gen, feature_gen,
     fs = FileStream(folders, ftype, annotations=annotations, ignore=True)
 
     # generate or load model
-    base_model_folder = "data/rdf/trainedmodels/"
+    base_model_folder = "data\\rdf\\trainedmodels\\"
     seg_model_path = os.path.join(base_model_folder,
                                   "{:s}_M{:d}_rad{:0.2f}".format("mixed_all_participants", M, radius))
     rdf_hs = load_hs_model("RDF Model", offset_gen, feature_gen, M, radius, n_samples, refresh=False,
@@ -60,9 +61,9 @@ def data_gen():
     s.sensor = "realsense"
 
     participants = ["p1", "p3", "p4", "p6"]
-    posture_folders = {p: os.path.join("data/posture", p) for p in participants}
+    posture_folders = {p: os.path.join("data\\posture", p) for p in participants}
 
-    annotation_file = "data/posture/annotations.txt"
+    annotation_file = "data\\posture\\annotations.txt"
 
     offset_gen = dcf.generate_feature_offsets
     feature_gen = dcf.calc_features
@@ -155,4 +156,4 @@ y_rh = np.array(y_rh)
 filenames = np.array(filenames)
 
 save_data(X_lh, y_lh, X_rh, y_rh, filenames, M, radius, feature_type, data_type="train")
-np.savez_compressed("data/posture/extracted/all_feature_vis.npz", vis_lhs=vis_lhs, y_lh=y_lh, vis_rhs=vis_rhs, y_rh=y_rh, filenames=filenames)
+np.savez_compressed("data\\posture\\extracted\\all_feature_vis.npz", vis_lhs=vis_lhs, y_lh=y_lh, vis_rhs=vis_rhs, y_rh=y_rh, filenames=filenames)

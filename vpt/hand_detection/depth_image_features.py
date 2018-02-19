@@ -72,10 +72,10 @@ def calc_features(dmap, offsets, sample_mask=None):
     d_u[i_u] = dmap[indexes_u[i_u][:, 0], indexes_u[i_u][:, 1]]
     d_v[i_v] = dmap[indexes_v[i_v][:, 0], indexes_v[i_v][:, 1]]
 
-    features = d_u - d_v, indexes_u, indexes_v
+    features = d_u - d_v
 
     # print("Total Features Time:", time.time() - start_time)
-    return features
+    return features, None
 
 
 if __name__ == '__main__':
