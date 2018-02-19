@@ -62,5 +62,4 @@ class FileStream:
 
 
     def get_fpaths(self):
-        print ("Shape:", len(self._fpaths))
         return self._fpaths
