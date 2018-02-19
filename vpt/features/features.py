@@ -6,19 +6,20 @@ from skimage.feature import hog as skhog
 from vpt.hand_detection.hand_generator import *
 import vpt.settings as s
 
-def hog(img, visualise=False):
+def hog(img, visualise=False, cells_per_block=(1,1), block_norm="L1-sqrt", img_size=(180,180)):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        img = resize(img, (180,180))
-        return skhog(img, orientations=9, pixels_per_cell=(16,16), cells_per_block=(4,4), block_norm="L1-sqrt", visualise=visualise)
+        img = resize(img, img_size)
+        return skhog(img, orientations=9, pixels_per_cell=(16,16), cells_per_block=cells_per_block, block_norm=block_norm, visualise=visualise)
 
 
-def sliced_hog(img, n_slices=20, visualise=False):
+def sliced_hog(img, n_slices=20, visualise=False, cells_per_block=(1,1), block_norm="L1-sqrt"):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         img = resize(img, (120, 90))
         cell_size = (img.shape[1], img.shape[0] / float(n_slices))
-        hog = skhog(img, orientations=9, pixels_per_cell=cell_size, cells_per_block=(1,4), block_norm="L1-sqrt", visualise=visualise)
+        # hog = skhog(img, orientations=9, pixels_per_cell=cell_size, cells_per_block=(1,4), block_norm="L1-sqrt", visualise=visualise)
+        hog = skhog(img, orientations=9, pixels_per_cell=cell_size, cells_per_block=cells_per_block, block_norm=block_norm, visualise=visualise)  #no-block
 
 
     if visualise:
@@ -122,8 +123,16 @@ def extract_features(img, xtype, n_slices=20, visualise=False, hand="lh"):
 
     if xtype == "shog":
         return sliced_hog(img, n_slices=n_slices, visualise=visualise)
+    elif xtype == "shog2":
+        return sliced_hog(img, n_slices=n_slices, visualise=visualise, cells_per_block=(1, 2), block_norm="L1-sqrt")
+    elif xtype == "shog3":
+        return sliced_hog(img, n_slices=n_slices, visualise=visualise, cells_per_block=(1, 4), block_norm="L1-sqrt")
     elif xtype == "hog":
         return hog(img, visualise=visualise)
+    elif xtype == "hog2":
+        return hog(img, visualise=visualise, cells_per_block=(2, 2), block_norm="L1-sqrt")
+    elif xtype == "hog3":
+        return hog(img, visualise=visualise, img_size=(180, 120))
     elif xtype == 'shonv':
         return shonv(img)
     else:

@@ -29,7 +29,7 @@ feature_type = "shog"
 def save_data(X_lh, y_lh, X_rh, y_rh, filenames, M, radius, feature_type, data_type):
     base = "data/posture/extracted/"
 
-    data_path = os.path.join(base, "{}_M{}_rad{:0.2f}_{}_".format("all_participants2", M, radius, feature_type))
+    data_path = os.path.join(base, "{}_M{}_rad{:0.2f}_{}_".format("all_participants2-noblock", M, radius, feature_type))
     np.savez_compressed(data_path + data_type + "_data.npz", X_lh=X_lh, y_lh=y_lh, X_rh=X_rh, y_rh=y_rh,
                         filenames=filenames)
 
@@ -155,4 +155,4 @@ y_rh = np.array(y_rh)
 filenames = np.array(filenames)
 
 save_data(X_lh, y_lh, X_rh, y_rh, filenames, M, radius, feature_type, data_type="train")
-np.savez_compressed("data/posture/extracted/all_feature_vis.npz", vis_lhs=vis_lhs, y_lh=y_lh, vis_rhs=vis_rhs, y_rh=y_rh, filenames=filenames)
+np.savez_compressed("data/posture/extracted/all_feature_vis-noblock.npz", vis_lhs=vis_lhs, y_lh=y_lh, vis_rhs=vis_rhs, y_rh=y_rh, filenames=filenames)
