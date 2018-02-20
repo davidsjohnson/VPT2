@@ -126,9 +126,13 @@ def main():
     base_folder = "data/rdf/training-rand"
     s.sensor = "realsense"
 
+    reg = "data/rdf/(p[\d]).*(p[\\d][a-z]).*([\\d]{6})_mask.npy"
+
     # scale_factors = [.75, .875, 1.125, 1.25]
 
     for participant, folder in MASK_FOLDERS.items():
+
+        og_filenames = []
 
         print("#### Creating Data For {} ####".format(participant))
         s.participant = participant
@@ -137,7 +141,12 @@ def main():
 
         i = 0
         mgen = fs.img_generator()
-        for mask, dmap, fpath in mgen:
+        for mask, dmap, fpath_og in mgen:
+
+            match = re.match(reg, fpath_og)
+            groups = match.groups()
+            fpath_og = "data/posture/{:s}/{:s}/{:s}".format(groups[0], groups[1], groups[2]+".bin")
+            print(fpath_og)
 
             # work around for masks with swapped color channels
             if participant != "p3" and participant != "p4":
@@ -163,6 +172,7 @@ def main():
             fname = "{:06d}.npz".format(i)
             fpath = os.path.join(base_folder, s.participant, fname)
             np.savez_compressed(fpath, dmap=dmap, mask=mask)
+            og_filenames.append(fpath_og)
             i += 1
 
             ##### Create augmented data
@@ -188,6 +198,7 @@ def main():
                     fname = "{:06d}.npz".format(i)
                     fpath = os.path.join(base_folder, s.participant, fname)
                     np.savez_compressed(fpath, dmap=dmap_new, mask=mask_new)
+                    og_filenames.append(fpath_og)
                     i += 1
 
                     # dmap_img = (ip.normalize(dmap_new) * 255).astype('uint8')
@@ -196,6 +207,10 @@ def main():
                     #     break
                 except IndexError as e:
                     print("Error Creating transformation:", e)
+
+        fname_files = "filenames.npy"
+        fpath_files = os.path.join(base_folder, s.participant, fname_files)
+        np.save(fpath_files, og_filenames)
 
 
 if __name__ == '__main__':
