@@ -6,6 +6,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support, confusion_matrix
 
 from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import ClusterCentroids
 from imblearn.pipeline import Pipeline
 
 
@@ -114,15 +115,19 @@ def calc_results(y_true, y_pred, verbose=0):
 def main():
 
     participants = ("p1", "p3", "p4", "p6")
-    feature_types = ("hog", "hog2")
-    # feature_types = ("hog", )
+    # feature_types = ("hog", "hog2")
+    feature_types = ("hog", )
 
     # Setup Pipeline for Classification
-    steps = [('SMOTE', SMOTE(kind="borderline2")), ("SVC", SVC(C=1, gamma=.001, kernel='rbf', probability=False))]
+    # steps = [('Resampling', SMOTE(kind="borderline2")), ("SVC", SVC(C=1, gamma=.001, kernel='rbf', probability=False))]
+    steps = [('Resampling', ClusterCentroids(n_jobs=2)), ("SVC", SVC(C=1, gamma=.001, kernel='rbf', probability=False))]
     pipeline = Pipeline(steps)
 
     M = 5
     radius = .15
+
+    verbose = 2
+    rem_static = 2
 
     results = {}
 
@@ -138,14 +143,14 @@ def main():
         y_comb = np.hstack((data["y_lh"], data["y_rh"]))
         f_comb = np.hstack((data["filenames"], data["filenames"]))
 
-        acc_avg, fsc_avg = cross_validation(pipeline, X_comb, y_comb, f_comb, participants, rem_static=0, verbose=1)
+        acc_avg, fsc_avg = cross_validation(pipeline, X_comb, y_comb, f_comb, participants, rem_static=rem_static, verbose=verbose)
 
         results[feature_type + "_acc"] = acc_avg
         results[feature_type + "_fsc"] = fsc_avg
 
     print("All Results")
     print("\t", results)
-    pickle.dump(results, open("posture_eval_results.pkl", "wb"))
+    # pickle.dump(results, open("posture_eval_results.pkl", "wb"))
 
 
 if __name__ == '__main__':
