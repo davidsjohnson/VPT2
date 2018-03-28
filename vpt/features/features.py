@@ -86,7 +86,7 @@ def honv(img, pixels_per_cell=(6, 6), cells_per_block=(1,1), num_bins=9, img_siz
     img = img.astype(float)
 
     if not pad_img:
-        img = resize(img, img_size)
+        img = resize(img, img_size, mode="constant")
     else:
         # the rare case that a hand is bigger than new size
         if img.shape[0] > img_size[0] and img.shape[1] > img_size[1]:

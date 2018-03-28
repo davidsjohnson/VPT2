@@ -1,3 +1,8 @@
+import sys
+sys.path.append("./")
+
+import progressbar
+
 import vpt.settings as s
 import vpt.hand_detection.depth_context_features as dcf
 from vpt.common import *
@@ -29,7 +34,8 @@ def data_gen(hs, feature_type):
     filenames = []
 
     hgen = hs.hand_generator()
-    for i, (lh_dmap, lh_label, rh_dmap, rh_label, filename) in enumerate(hgen):
+    bar = progressbar.ProgressBar(max_value=15817)
+    for i, (lh_dmap, lh_label, rh_dmap, rh_label, filename) in bar(enumerate(hgen)):
 
             rh_dmap = rh_dmap[:, ::-1]
 
@@ -59,7 +65,7 @@ def main():
     participants = "all"
 
     ## Posture Detection Parameters
-    feature_type = "exp2-honv"
+    feature_type = "exp3-hog"
 
     data_type = "train"
 
