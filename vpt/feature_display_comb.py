@@ -29,7 +29,7 @@ radius = .15
 participants = "all"
 
 ## Posture Detection Parameters
-feature_type = "hog3"
+feature_type = "hog-new"
 
 data_type = "train"
 

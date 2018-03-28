@@ -1,0 +1,256 @@
+Experiment #1:
+
+    exp_num = 1
+    M = 5
+    radius = .15
+    feature_type = "hog"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_windows
+    window_size = 30
+    k_folds = 3
+
+    steps = [('Resampling', SMOTEENN(smote=SMOTE(kind="svm"))), ("SVC", SVC(C=1, gamma=.1, kernel='rbf', decision_function_shape='ovr', probability=False))]
+
+
+Experiment #2:
+
+    exp_num = 2
+    M = 5
+    radius = .15
+    feature_type = "hog"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_windows
+    window_size = 30
+    k_folds = 3
+
+    steps = [('Resampling', EditedNearestNeighbours()), ("SVC", SVC(C=1, gamma=.1, kernel='rbf', decision_function_shape='ovr', probability=False))]
+
+
+Experiment #3:
+
+    exp_num = 3
+    M = 5
+    radius = .15
+    feature_type = "hog"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_windows
+    window_size = 30
+    k_folds = 3
+
+    steps = [('Resampling', SMOTE(kind="svm")), ("SVC", SVC(C=1, gamma=.1, kernel='rbf', decision_function_shape='ovr', probability=False))]
+    pipeline = Pipeline(steps)
+
+
+Experiment #4:
+    participants = ["p1", "p3", "p4", "p6"]
+
+    exp_num = 4
+    M = 5
+    radius = .15
+    feature_type = "hog2"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_windows
+    window_size = 30
+    k_folds = 3
+
+    steps = [('Resampling', SMOTEENN(smote=SMOTE(kind="svm"))),
+             ("SVC", SVC(C=1, gamma=.1, kernel='rbf', decision_function_shape='ovr', probability=False))]
+    pipeline = Pipeline(steps)
+
+
+Experiment #5:
+
+    participants = ["p1", "p3", "p4", "p6"]
+
+    exp_num = 5
+    M = 5
+    radius = .15
+    feature_type = "hog"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_windows
+    window_size = 30
+    k_folds = 3
+
+    steps = [('Resampling', SMOTE(kind="borderline2")),
+             ("SVC", SVC(C=1, gamma=.1, kernel='rbf', decision_function_shape='ovr', probability=False))]
+    pipeline = Pipeline(steps)
+
+
+
+Experiment #6:
+#### No SMOTE: C=1; gamma=.1; kernel=rbf
+
+    participants = ["p1", "p3", "p4", "p6"]
+
+    exp_num = 6
+    M = 5
+    radius = .15
+    feature_type = "hog"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_windows
+    window_size = 30
+    k_folds = 3
+
+    steps = [("SVC", SVC(C=1, gamma=.1, kernel='rbf', decision_function_shape='ovr', probability=False))]
+    pipeline = Pipeline(steps)
+
+
+Experiment #7
+
+    participants = ["p3", "p4", "p1", "p6"]
+
+    exp_num = 7
+    M = 5
+    radius = .15
+    feature_type = "hog"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_windows
+    window_size = 30
+    k_folds = 3
+
+    steps1 = [("Resample", SMOTE(kind="borderline2")), ("SVC", SVC(C=1, gamma=.1, kernel='rbf', decision_function_shape='ovo', probability=False))]
+    steps2 = [("Resample", SMOTETomek(smote=SMOTE(kind="borderline2"))), ("SVC", SVC(C=1, gamma=.1, kernel='rbf', decision_function_shape='ovo', probability=False))]
+
+    clfs = [Pipeline(steps1), Pipeline(steps2)]
+    pos = (0, 1)
+    neg = ((1,2), (2,))
+
+    clf = HierarchicalClassifier(clfs, pos, neg)
+
+
+Experiment #8:
+
+    participants = ["p3", "p4", "p1", "p6"]
+    exercises = ["a", "b", "c", "d", "e"]
+
+    exp_num = 8
+    M = 5
+    radius = .15
+    feature_type = "hog"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_windows
+    window_size = 30
+    k_folds = 3
+
+    steps1 = [("Resample", SMOTEENN(smote=SMOTE(kind="borderline2"), enn=EditedNearestNeighbours(n_neighbors=5, kind_sel="mode"))), ("SVC", SVC(C=1, gamma=.1, kernel='rbf'))]
+    steps2 = [("Resample", SMOTEENN(smote=SMOTE(kind="borderline1"), enn=EditedNearestNeighbours(n_neighbors=5, kind_sel="mode"))), ("SVC", SVC(C=1, kernel='linear'))]
+
+    clfs = [Pipeline(steps1), Pipeline(steps2)]
+    pos = (0, 1)
+    neg = ((1,2), (2,))
+
+    clf = HierarchicalClassifier(clfs, pos, neg)
+
+
+Experiment #9
+
+    participants = ["p3", "p4", "p1", "p6"]
+
+    exp_num = 9
+    M = 5
+    radius = .15
+    feature_type = "hog"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_windows
+    window_size = 30
+    k_folds = 3
+
+    # cv = cross_validate_exercises
+    # exercises = ["a", "b", "c", "d", "e"]
+
+    steps1 = [("Resample", SMOTEENN(smote=SMOTE(kind="borderline2"), enn=EditedNearestNeighbours(n_neighbors=5, kind_sel="mode"))), ("SVC", SVC(C=1, gamma=.1, kernel='rbf'))]
+    steps2 = [("Resample", SMOTEENN(smote=SMOTE(kind="borderline2"), enn=EditedNearestNeighbours(n_neighbors=5, kind_sel="mode"))), ("SVC", SVC(C=1, gamma=.1, kernel='rbf'))]
+
+    clfs = [Pipeline(steps1), Pipeline(steps2)]
+    pos = (0, 1)
+    neg = ((1,2), (2,))
+
+    clf = HierarchicalClassifier(clfs, pos, neg)
+
+
+Experiment #10
+
+    participants = ["p3", "p4", "p1", "p6"]
+
+    exp_num = 10
+    M = 5
+    radius = .15
+    feature_type = "hog"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_exercises
+    exercises = ["a", "b", "c", "d", "e"]
+
+    steps1 = [("Resample", SMOTEENN(smote=SMOTE(kind="borderline2"), enn=EditedNearestNeighbours(n_neighbors=5, kind_sel="mode"))), ("SVC", SVC(C=1, gamma=.1, kernel='rbf'))]
+
+    clf = Pipeline(steps1)
+
+
+Experiment #11:
+
+    participants = ["p3", "p4", "p1", "p6"]
+
+    exp_num = 11
+    M = 5
+    radius = .15
+    feature_type = "hog"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_exercises
+    exercises = ["a", "b", "c", "d", "e"]
+
+    steps1 = [('Resampling', SMOTE(kind="svm")), ("SVC", SVC(C=1, gamma=.1, kernel='rbf', decision_function_shape='ovr', probability=False))]
+
+    clf = Pipeline(steps1)
+
+Experiment #12:
+
+    participants = ["p3", "p4", "p1", "p6"]
+
+    exp_num = 12
+    M = 5
+    radius = .15
+    feature_type = "hog3"
+
+    rem_static = True
+    verbose = 2
+
+    cv = cross_validate_windows
+    window_size = 30
+    k_folds = 3
+
+    steps1 = [('Resampling', SMOTE(kind="borderline2")),
+             ("SVC", SVC(C=1, gamma=.1, kernel='rbf', decision_function_shape='ovr', probability=False))]
+
+    clf = Pipeline(steps1)
