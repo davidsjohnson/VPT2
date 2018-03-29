@@ -141,35 +141,6 @@ def cross_validate(pipeline, cv, X, y, groups, verbose=0):
     return results
 
 
-def main2(M, radius, pipeline, feature_type, participants, exercises, exp_num, verbose=0):
-
-    #### Loading all data
-    data = load_data("all_participants", M, radius, feature_type, "train")
-
-    X_lh = data['X_lh']
-    y_lh = data['y_lh']
-    f_lh = data['filenames']
-    X_rh = data['X_rh']
-    y_rh = data['y_rh']
-    f_rh = data['filenames']
-
-    X = np.vstack((X_lh, X_rh))
-    y = np.hstack((y_lh, y_rh))
-    f = np.hstack((f_lh, f_rh))
-
-    results = {}
-    for p in participants:
-
-        X_p, y_p, f_p = split_participant(X, y, f, p)
-
-        X_test, y_test, f_test, X_train, y_train, f_train = split_static(X_p, y_p, f_p)
-
-        print("##### Static Train Ex Validation for {} #####".format(p))
-        results[p] = static_cv_exercises(pipeline, X_train, y_train, f_train, X_test, y_test, f_test, exercises, verbose=verbose)
-
-    pickle.dump(results, open("individual_static_train_results_{}.pkl".format(exp_num), "wb"))
-
-
 def main(M, radius, pipeline, feature_type, participants, exp_num, cv, *args, rem_static=True, verbose=0):
 
     #### Loading all data
@@ -206,7 +177,7 @@ def main(M, radius, pipeline, feature_type, participants, exp_num, cv, *args, re
             print("Data Counts - X:", X_p.shape, " - y:",  y_p.shape)
         results[p] = cv(pipeline, X_p, y_p, f_p, *args, verbose=verbose)
 
-    pickle.dump(results, open("cmj_exp_results_{}.pkl".format(exp_num), "wb"))
+    pickle.dump(results, open("cmj_exp2_results_{}.pkl".format(exp_num), "wb"))
 
 
 if __name__ == '__main__':
@@ -215,10 +186,8 @@ if __name__ == '__main__':
 
     participants = ["p3", "p1", "p4", "p6"]
 
-    exp_num = 9999
     M = 5
     radius = .15
-    feature_type = "test"
 
     rem_static = True
     verbose = 2
@@ -227,18 +196,30 @@ if __name__ == '__main__':
     window_size = 30
     k_folds = 3
 
-    # cv = cross_validate_exercises
-    # exercises = ["a", "b", "c", "d", "e"]
+    features = ["hog", "honv"]
+    cell_sizes = [(4,4), (6,6), (8,8), (12,12), (16,16)]
+    block_sizes = [(1,1), (2,2), (3,3), (4,4)]
 
-    steps1 = [("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
+    exp_num = 0
+    for f in features:
+        for c in cell_sizes:
+            for b in block_sizes:
 
-    # clfs = [Pipeline(steps1), Pipeline(steps2)]
-    # pos = (0, 1)
-    # neg = ((1,2), (2,))
-    #
-    # clf = HierarchicalClassifier(clfs, pos, neg)
+                exp_num += 1
+                feature_type = "f_{}-c_{}-b_{}".format(f, c[0], b[0])
 
-    clf = Pipeline(steps1)
+                # cv = cross_validate_exercises
+                # exercises = ["a", "b", "c", "d", "e"]
 
-    main(M, radius, clf, feature_type, participants, exp_num, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
-    # main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)
+                steps1 = [("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
+
+                # clfs = [Pipeline(steps1), Pipeline(steps2)]
+                # pos = (0, 1)
+                # neg = ((1,2), (2,))
+                #
+                # clf = HierarchicalClassifier(clfs, pos, neg)
+
+                clf = Pipeline(steps1)
+
+                main(M, radius, clf, feature_type, participants, exp_num, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
+                # main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)

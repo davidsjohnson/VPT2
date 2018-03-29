@@ -121,7 +121,10 @@ def honv(img, pixels_per_cell=(6, 6), cells_per_block=(1,1), num_bins=9, img_siz
 
         ceildiv = lambda a, b: -(-a // b)  # ceiling divide to round up for histogram reshaping
         hists_tmp = np.reshape(hists, (ceildiv(img_size[0], pixels_per_cell[0]), ceildiv(img_size[1], pixels_per_cell[1]), -1))
-        for tmp in sliding_window(hists_tmp, step_size=(2,2), window_size=cells_per_block):
+        step_size = (2,2)
+        if cells_per_block == (1,1) or cells_per_block == (2,2):
+            step_size = (1,1)
+        for tmp in sliding_window(hists_tmp, step_size=step_size, window_size=cells_per_block):
 
             if block_norm == "L1-sqrt":
                 v = tmp.ravel()

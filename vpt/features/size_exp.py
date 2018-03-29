@@ -61,7 +61,7 @@ def main():
 
     features = [hog]
     cell_sizes = [(4,4), (6,6), (8,8), (12,12), (16,16)]
-    block_sizes = [(3,3), (4,4)]
+    block_sizes = [(1,1), (2,2), (3,3), (4,4)]
 
     for f in features:
         for c in cell_sizes:
