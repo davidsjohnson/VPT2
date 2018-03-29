@@ -16,7 +16,7 @@ import vpt.individual_eval as eval
 def save_data(X_lh, y_lh, X_rh, y_rh, filenames, M, radius, feature_type, data_type, participants):
     base = "data/posture/extracted/"
     data_path = os.path.join(base, "{}_M{}_rad{:0.2f}_{}_".format(participants, M, radius, feature_type))
-    np.savez(data_path + data_type + "_data_combined.npz", X_lh=X_lh, y_lh=y_lh, X_rh=X_rh, y_rh=y_rh, filenames=filenames)
+    np.savez_compressed(data_path + data_type + "_data_combined.npz", X_lh=X_lh, y_lh=y_lh, X_rh=X_rh, y_rh=y_rh, filenames=filenames)
 
 def get_handstream(M, radius, participants):
 
