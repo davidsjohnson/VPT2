@@ -202,6 +202,8 @@ def main(M, radius, pipeline, feature_type, participants, exp_num, cv, *args, re
         X_p, y_p, f_p = split_participant(X, y, f, p)
 
         print("##### Cross Validation for {} #####".format(p))
+        if verbose > 1:
+            print("Data Counts - X:", X_p.shape, " - y:",  y_p.shape)
         results[p] = cv(pipeline, X_p, y_p, f_p, *args, verbose=verbose)
 
     pickle.dump(results, open("cmj_exp_results_{}.pkl".format(exp_num), "wb"))
@@ -213,10 +215,10 @@ if __name__ == '__main__':
 
     participants = ["p3", "p1", "p4", "p6"]
 
-    exp_num = 3
+    exp_num = 9999
     M = 5
     radius = .15
-    feature_type = "exp1-hog"
+    feature_type = "test"
 
     rem_static = True
     verbose = 2

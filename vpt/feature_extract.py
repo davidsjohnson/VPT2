@@ -9,7 +9,6 @@ from vpt.common import *
 from vpt.streams.hand_stream import *
 from vpt.features.features import *
 
-import matplotlib.animation as animation
 
 def get_handstream(M, radius, participants):
 
@@ -65,7 +64,7 @@ def main():
     participants = "all"
 
     ## Posture Detection Parameters
-    feature_type = "exp3-hog"
+    feature_type = "test"
 
     data_type = "train"
 
