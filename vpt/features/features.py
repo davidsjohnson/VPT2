@@ -135,7 +135,7 @@ def honv(img, pixels_per_cell=(6, 6), cells_per_block=(1,1), num_bins=9, img_siz
 
         hists = normed_hists
 
-    return np.hstack(hists)
+    return np.hstack(hists).astype("float32")
 
 # def sliced_hog(img, n_slices=20):
 #     ''' Horizontally sliced histograms of Oriented Gradients '''
