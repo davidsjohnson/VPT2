@@ -177,7 +177,7 @@ def main(M, radius, pipeline, feature_type, participants, exp_num, cv, *args, re
             print("Data Counts - X:", X_p.shape, " - y:",  y_p.shape)
         results[p] = cv(pipeline, X_p, y_p, f_p, *args, verbose=verbose)
 
-    pickle.dump(results, open("cmj_exp2_results_{}.pkl".format(exp_num), "wb"))
+    pickle.dump(results, open("cmj_exp4_results_{}.pkl".format(exp_num), "wb"))
 
 
 if __name__ == '__main__':
@@ -196,17 +196,15 @@ if __name__ == '__main__':
     window_size = 30
     k_folds = 3
 
-    features = ["hog", "honv"]
-    cell_sizes = [(4,4), (6,6), (8,8), (12,12), (16,16)]
-    block_sizes = [(1,1), (2,2), (3,3), (4,4)]
+    features = ["honv"]
+    cell_sizes = [(6,6), (8,8), (12,12), (16,16)]
 
     exp_num = 0
     for f in features:
         for c in cell_sizes:
-            for b in block_sizes:
 
                 exp_num += 1
-                feature_type = "f_{}-c_{}-b_{}".format(f, c[0], b[0])
+                feature_type = "f_{}-c_{}-b_{}".format(f, c[0], "none")
 
                 # cv = cross_validate_exercises
                 # exercises = ["a", "b", "c", "d", "e"]
