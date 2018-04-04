@@ -141,7 +141,7 @@ def cross_validate(pipeline, cv, X, y, groups, verbose=0):
     return results
 
 
-def main(M, radius, pipeline, feature_type, participants, exp_num, cv, *args, rem_static=True, verbose=0):
+def main(M, radius, pipeline, feature_type, participants, exp_num, exp_name, cv, *args, rem_static=True, verbose=0):
 
     #### Loading all data
     data = load_data("all_participants", M, radius, feature_type, "train")
@@ -177,7 +177,7 @@ def main(M, radius, pipeline, feature_type, participants, exp_num, cv, *args, re
             print("Data Counts - X:", X_p.shape, " - y:",  y_p.shape)
         results[p] = cv(pipeline, X_p, y_p, f_p, *args, verbose=verbose)
 
-    pickle.dump(results, open("cmj_exp4_results_{}.pkl".format(exp_num), "wb"))
+    pickle.dump(results, open("cmj_exp-{}_results_{}.pkl".format(exp_name, exp_num), "wb"))
 
 
 if __name__ == '__main__':
@@ -196,28 +196,36 @@ if __name__ == '__main__':
     window_size = 30
     k_folds = 3
 
-    features = ["honv"]
-    cell_sizes = [(6,6), (8,8), (12,12), (16,16)]
+    feature = "honv"
+    cell_size = (8,8)
+    block_size = (2,2)
 
     exp_num = 0
-    for f in features:
-        for c in cell_sizes:
+    exp_name = "smote"
 
-                exp_num += 1
-                feature_type = "f_{}-c_{}-b_{}".format(f, c[0], "none")
+    feature_type = "f_{}-c_{}-b_{}".format(feature, cell_size[0], block_size[0])
 
-                # cv = cross_validate_exercises
-                # exercises = ["a", "b", "c", "d", "e"]
+    # cv = cross_validate_exercises
+    # exercises = ["a", "b", "c", "d", "e"]
 
-                steps1 = [("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
+    smote_kinds = ["regular", "borderline1", "borderline2", "svm"]
 
-                # clfs = [Pipeline(steps1), Pipeline(steps2)]
-                # pos = (0, 1)
-                # neg = ((1,2), (2,))
-                #
-                # clf = HierarchicalClassifier(clfs, pos, neg)
+    for kind in smote_kinds:
 
-                clf = Pipeline(steps1)
+        if kind is "svm":
+            steps = [("Smote", SMOTEENN(smote=SMOTE(kind=kind, svm_estimator=SVC(C=10, kernel='linear')))),
+                     ("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
+        else:
+            steps = [("Smote", SMOTEENN(smote=SMOTE(kind=kind))),
+                     ("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
 
-                main(M, radius, clf, feature_type, participants, exp_num, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
-                # main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)
+        # clfs = [Pipeline(steps1), Pipeline(steps2)]
+        # pos = (0, 1)
+        # neg = ((1,2), (2,))
+        #
+        # clf = HierarchicalClassifier(clfs, pos, neg)
+
+        clf = Pipeline(steps)
+
+        main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
+        # main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)
