@@ -122,7 +122,7 @@ def cross_validate(pipeline, cv, X, y, groups, verbose=0):
          'SVC_kernel': ['linear']}
     ]
 
-    scoring = ['f_macro', 'f_micro', 'accuracy']
+    scoring = ['fscore_macro', 'fscore_micro', 'accuracy']
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -130,7 +130,7 @@ def cross_validate(pipeline, cv, X, y, groups, verbose=0):
         print()
 
         clf_comb = GridSearchCV(pipeline, param_grid, cv=cv.split(X, y, groups=groups),
-                                scoring=scoring, n_jobs=2, verbose=1, refit="accuracy")
+                                scoring=scoring, n_jobs=-1, verbose=1, refit="accuracy")
         clf_comb.fit(X, y)
 
         print("Best Combined Parameters set found on data set:")
@@ -151,7 +151,7 @@ def cross_validate(pipeline, cv, X, y, groups, verbose=0):
         print()
 
 
-    return clf_comb.cv_results_s
+    return clf_comb.cv_results_
 
 
 def main(M, radius, pipeline, feature_type, participants, exp_num, exp_name, cv, *args, rem_static=True, verbose=0):
@@ -214,31 +214,23 @@ if __name__ == '__main__':
     block_size = (1,1)
 
     exp_num = 0
-    exp_name = "smote"
+    exp_name = "tuning"
 
     feature_type = "f_{}-c_{}-b_{}".format(feature, cell_size[0], block_size[0])
 
     # cv = cross_validate_exercises
     # exercises = ["a", "b", "c", "d", "e"]
 
-    smote_kinds = ["regular", "borderline1", "borderline2", "svm"]
 
-    for kind in smote_kinds:
+    steps = [("SVC", SVC())]
 
-        if kind is "svm":
-            steps = [("Smote", SMOTEENN(smote=SMOTE(kind=kind, svm_estimator=SVC(C=10, kernel='linear')))),
-                     ("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
-        else:
-            steps = [("Smote", SMOTEENN(smote=SMOTE(kind=kind))),
-                     ("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
+    # clfs = [Pipeline(steps1), Pipeline(steps2)]
+    # pos = (0, 1)
+    # neg = ((1,2), (2,))
+    #
+    # clf = HierarchicalClassifier(clfs, pos, neg)
 
-        # clfs = [Pipeline(steps1), Pipeline(steps2)]
-        # pos = (0, 1)
-        # neg = ((1,2), (2,))
-        #
-        # clf = HierarchicalClassifier(clfs, pos, neg)
+    clf = Pipeline(steps)
 
-        clf = Pipeline(steps)
-
-        main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
-        # main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)
+    main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
+    # main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)
