@@ -1,6 +1,9 @@
+import sys
+sys.path.append("./")
+
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, f1_score
-from sklearn.model_selection import LeaveOneGroupOut, GroupKFold
+from sklearn.model_selection import LeaveOneGroupOut, GroupKFold, GridSearchCV
 from sklearn.decomposition import PCA
 
 from imblearn.pipeline import Pipeline
@@ -110,38 +113,48 @@ def static_cv_exercises(pipeline, X_train, y_train, f_train, X_test, y_test, f_t
 
 def cross_validate(pipeline, cv, X, y, groups, verbose=0):
 
-    results = {}
 
-    for i, (train_idxs, test_idxs) in enumerate(cv.split(X, y, groups=groups)):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            print("#### CV #: {} ####".format(i))
+    param_grid = [
+        {'SVC__C': [0.01, 0.11, 10, 100],
+         'SVC__gamma': [.001, .01, .1, 1, 10],
+         'SVC__kernel': ['rbf']},
+        {'SVC_C': [0.01, 0.11, 10, 100],
+         'SVC_kernel': ['linear']}
+    ]
 
-            if verbose > 1:
-                print("Train Data - X:", X[train_idxs].shape, "y:", y[train_idxs].shape)
-                print("Test Data - X:", X[test_idxs].shape, "y:", y[test_idxs].shape)
+    scoring = ['f_macro', 'f_micro', 'accuracy']
 
-            print("Training...")
-            pipeline.fit(X[train_idxs], y[train_idxs])
-            print("Predicting...")
-            y_true, y_pred = y[test_idxs], pipeline.predict(X[test_idxs])
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        print("## Tuning hyper-parameters ##")
+        print()
 
-            results["cv{}_accuracy".format(i)] = accuracy_score(y_true, y_pred)
-            results["cv{}_conf_mat".format(i)] = confusion_matrix(y_true, y_pred)
-            results["cv{}_f_score".format(i)] = f1_score(y_true, y_pred, average="weighted")
-            results["cv{}_report".format(i)] = classification_report(y_true, y_pred)
+        clf_comb = GridSearchCV(pipeline, param_grid, cv=cv.split(X, y, groups=groups),
+                                scoring=scoring, n_jobs=2, verbose=1, refit="accuracy")
+        clf_comb.fit(X, y)
 
-            print("Results")
-            print("Accuracy:", results["cv{}_accuracy".format(i)])
-            print("F1:", results["cv{}_f_score".format(i)])
-            print("Confusion Matrix:\n", results["cv{}_conf_mat".format(i)])
-            print(results["cv{}_report".format(i)])
+        print("Best Combined Parameters set found on data set:")
+        print()
+        print(clf_comb.best_params_)
+        print()
+        print("Grid scores on data set:")
+        print()
+        means_acc = clf_comb.cv_results_['mean_test_accuracy']
+        stds_acc = clf_comb.cv_results_['std_test_accuracy']
+        means_recall = clf_comb.cv_results_['mean_test_recall_macro']
+        stds_recall = clf_comb.cv_results_['std_test_recall_macro']
+        for mean_acc, std_acc, mean_recall, std_recall, params in zip(means_acc, stds_acc, means_recall,
+                                                                      stds_recall, clf_comb.cv_results_['params']):
+            print("Recall: %0.3f (+/-%0.3f) - Accuracy: %0.3f (+/-%0.3f) for\n %r" % (
+            mean_recall, std_recall, mean_acc, std_acc, params))
             print()
+        print()
 
-    return results
+
+    return clf_comb.cv_results_
 
 
-def main(M, radius, pipeline, feature_type, participants, exp_num, cv, *args, rem_static=True, verbose=0):
+def main(M, radius, pipeline, feature_type, participants, exp_num, exp_name, cv, *args, rem_static=True, verbose=0):
 
     #### Loading all data
     data = load_data("all_participants", M, radius, feature_type, "train")
@@ -172,12 +185,12 @@ def main(M, radius, pipeline, feature_type, participants, exp_num, cv, *args, re
 
         X_p, y_p, f_p = split_participant(X, y, f, p)
 
-        print("##### Cross Validation for {} #####".format(p))
+        print("##### Parameter Tuning for {} #####".format(p))
         if verbose > 1:
             print("Data Counts - X:", X_p.shape, " - y:",  y_p.shape)
         results[p] = cv(pipeline, X_p, y_p, f_p, *args, verbose=verbose)
 
-    pickle.dump(results, open("cmj_exp2_results_{}.pkl".format(exp_num), "wb"))
+    pickle.dump(results, open("cmj_exp-{}_results_{}.pkl".format(exp_name, exp_num), "wb"))
 
 
 if __name__ == '__main__':
@@ -196,21 +209,36 @@ if __name__ == '__main__':
     window_size = 30
     k_folds = 3
 
-    exp_num =6
-    feature_type = "exp3-honv"
+    feature = "honv"
+    cell_size = (8,8)
+    block_size = (1,1)
+
+    exp_num = 0
+    exp_name = "smote"
+
+    feature_type = "f_{}-c_{}-b_{}".format(feature, cell_size[0], block_size[0])
 
     # cv = cross_validate_exercises
     # exercises = ["a", "b", "c", "d", "e"]
 
-    steps1 = [("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
+    smote_kinds = ["regular", "borderline1", "borderline2", "svm"]
 
-    # clfs = [Pipeline(steps1), Pipeline(steps2)]
-    # pos = (0, 1)
-    # neg = ((1,2), (2,))
-    #
-    # clf = HierarchicalClassifier(clfs, pos, neg)
+    for kind in smote_kinds:
 
-    clf = Pipeline(steps1)
+        if kind is "svm":
+            steps = [("Smote", SMOTEENN(smote=SMOTE(kind=kind, svm_estimator=SVC(C=10, kernel='linear')))),
+                     ("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
+        else:
+            steps = [("Smote", SMOTEENN(smote=SMOTE(kind=kind))),
+                     ("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
 
-    main(M, radius, clf, feature_type, participants, exp_num, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
-    # main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)
+        # clfs = [Pipeline(steps1), Pipeline(steps2)]
+        # pos = (0, 1)
+        # neg = ((1,2), (2,))
+        #
+        # clf = HierarchicalClassifier(clfs, pos, neg)
+
+        clf = Pipeline(steps)
+
+        main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
+        # main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)
