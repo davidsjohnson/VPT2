@@ -151,7 +151,7 @@ def cross_validate(pipeline, cv, X, y, groups, verbose=0):
         print()
 
 
-    return clf_comb.cv_results_
+    return clf_comb.cv_results_s
 
 
 def main(M, radius, pipeline, feature_type, participants, exp_num, exp_name, cv, *args, rem_static=True, verbose=0):
