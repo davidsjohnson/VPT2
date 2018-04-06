@@ -122,7 +122,7 @@ def cross_validate(pipeline, cv, X, y, groups, verbose=0):
          'SVC_kernel': ['linear']}
     ]
 
-    scoring = ['fscore_macro', 'fscore_micro', 'accuracy']
+    scoring = ['f1_macro', 'f1_micro', 'accuracy']
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
