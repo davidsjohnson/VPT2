@@ -195,40 +195,31 @@ if __name__ == '__main__':
     rem_static = True
     verbose = 2
 
-    cv = cross_validate_windows
-    window_size = 30
-    k_folds = 3
+    # cv = cross_validate_windows
+    # window_size = 30
+    # k_folds = 3
 
     feature = "honv"
-    cell_size = (8,8)
-    block_size = (2,2)
+    cell_size = (12,12)
+    block_size = (1,1)
 
-    exp_num = 0
-    exp_name = "smote"
+    exp_num = 1
+    exp_name = "ex-based"
 
     feature_type = "f_{}-c_{}-b_{}".format(feature, cell_size[0], block_size[0])
 
-    # cv = cross_validate_exercises
-    # exercises = ["a", "b", "c", "d", "e"]
+    cv = cross_validate_exercises
+    exercises = ["a", "b", "c", "d", "e"]
 
-    smote_kinds = ["regular", "borderline1", "borderline2", "svm"]
+    steps = [("SVC", SVC(C=10, kernel='rbf', gamma=".01", decision_function_shape='ovr', probability=False))]
 
-    for kind in smote_kinds:
+    # clfs = [Pipeline(steps1), Pipeline(steps2)]
+    # pos = (0, 1)
+    # neg = ((1,2), (2,))
+    #
+    # clf = HierarchicalClassifier(clfs, pos, neg)
 
-        if kind is "svm":
-            steps = [("Smote", SMOTEENN(smote=SMOTE(kind=kind, svm_estimator=SVC(C=10, kernel='linear')))),
-                     ("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
-        else:
-            steps = [("Smote", SMOTEENN(smote=SMOTE(kind=kind))),
-                     ("SVC", SVC(C=10, kernel='linear', decision_function_shape='ovr', probability=False))]
+    clf = Pipeline(steps)
 
-        # clfs = [Pipeline(steps1), Pipeline(steps2)]
-        # pos = (0, 1)
-        # neg = ((1,2), (2,))
-        #
-        # clf = HierarchicalClassifier(clfs, pos, neg)
-
-        clf = Pipeline(steps)
-
-        main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
-        # main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)
+    # main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
+    main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)
