@@ -222,4 +222,4 @@ if __name__ == '__main__':
     clf = Pipeline(steps)
 
     # main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
-    main(M, radius, clf, feature_type, participants, exp_num, cv, exercises, rem_static=rem_static, verbose=verbose)
+    main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, exercises, rem_static=rem_static, verbose=verbose)
