@@ -211,7 +211,7 @@ if __name__ == '__main__':
     cv = cross_validate_exercises
     exercises = ["a", "b", "c", "d", "e"]
 
-    steps = [("SVC", SVC(C=10, kernel='rbf', gamma=".01", decision_function_shape='ovr', probability=False))]
+    steps = [("SVC", SVC(C=10, kernel='rbf', gamma=.01, decision_function_shape='ovr', probability=False))]
 
     # clfs = [Pipeline(steps1), Pipeline(steps2)]
     # pos = (0, 1)
