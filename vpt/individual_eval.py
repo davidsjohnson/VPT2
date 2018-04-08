@@ -7,7 +7,7 @@ from sklearn.model_selection import LeaveOneGroupOut, GroupKFold
 from sklearn.decomposition import PCA
 
 from imblearn.pipeline import Pipeline
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE, ADASYN
 from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.under_sampling import EditedNearestNeighbours, ClusterCentroids, RepeatedEditedNearestNeighbours
 
@@ -203,23 +203,42 @@ if __name__ == '__main__':
     cell_size = (12,12)
     block_size = (1,1)
 
-    exp_num = 1
-    exp_name = "ex-based"
+    exp_num = 0
+    exp_name = "exercise-smote"
 
     feature_type = "f_{}-c_{}-b_{}".format(feature, cell_size[0], block_size[0])
 
     cv = cross_validate_exercises
     exercises = ["a", "b", "c", "d", "e"]
 
-    steps = [("SVC", SVC(C=10, kernel='rbf', gamma=.01, decision_function_shape='ovr', probability=False))]
+    smotes = ["regular", "boderline1", "borderline2", "svm", "adasyn", None]
 
-    # clfs = [Pipeline(steps1), Pipeline(steps2)]
-    # pos = (0, 1)
-    # neg = ((1,2), (2,))
-    #
-    # clf = HierarchicalClassifier(clfs, pos, neg)
+    for kind in smotes:
+        exp_num += 1
 
-    clf = Pipeline(steps)
+        if kind is None:
+            print("None")
+            steps = [("SVC", SVC(C=10, kernel='rbf', gamma=.01, random_state=0))]
+        elif kind == "svm":
+            print("SVM")
+            steps = [("Resample", SMOTE(kind=kind, svm_estimator=SVC(kernel='rbf', C=10, gamma=.01), n_jobs=8, random_state=0)),
+                     ("SVC", SVC(C=10, kernel='rbf', gamma=.01, random_state=0))]
+        elif kind =="adasyn":
+            print("ADASYN")
+            steps = [("Resample", ADASYN( n_jobs=8, random_state=0)),
+                     ("SVC", SVC(C=10, kernel='rbf', gamma=.01, random_state=0))]
+        else:
+            print(kind)
+            steps = [("Resample", SMOTE(kind=kind, n_jobs=8, random_state=0)),
+                     ("SVC", SVC(C=10, kernel='rbf', gamma=.01, random_state=0))]
 
-    # main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
-    main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, exercises, rem_static=rem_static, verbose=verbose)
+        # clfs = [Pipeline(steps1), Pipeline(steps2)]
+        # pos = (0, 1)
+        # neg = ((1,2), (2,))
+        #
+        # clf = HierarchicalClassifier(clfs, pos, neg)
+
+        clf = Pipeline(steps)
+
+        # main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, window_size, k_folds, rem_static=rem_static, verbose=verbose)
+        main(M, radius, clf, feature_type, participants, exp_num, exp_name, cv, exercises, rem_static=rem_static, verbose=verbose)
