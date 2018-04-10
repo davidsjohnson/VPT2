@@ -200,36 +200,29 @@ if __name__ == '__main__':
     # k_folds = 3
 
     feature = "honv"
-    cell_size = (12,12)
+    cell_size = (8,8)
     block_size = (1,1)
 
     exp_num = 0
-    exp_name = "exercise-smote"
+    exp_name = "exercise-smote-comb"
 
     feature_type = "f_{}-c_{}-b_{}".format(feature, cell_size[0], block_size[0])
 
     cv = cross_validate_exercises
     exercises = ["a", "b", "c", "d", "e"]
 
-    smotes = ["regular", "boderline1", "borderline2", "svm", "adasyn", None]
+    smotes = ["enn", "tomek"]
 
     for kind in smotes:
         exp_num += 1
 
-        if kind is None:
-            print("None")
-            steps = [("SVC", SVC(C=10, kernel='rbf', gamma=.01, random_state=0))]
-        elif kind == "svm":
-            print("SVM")
-            steps = [("Resample", SMOTE(kind=kind, svm_estimator=SVC(kernel='rbf', C=10, gamma=.01), n_jobs=8, random_state=0)),
-                     ("SVC", SVC(C=10, kernel='rbf', gamma=.01, random_state=0))]
-        elif kind =="adasyn":
-            print("ADASYN")
-            steps = [("Resample", ADASYN( n_jobs=8, random_state=0)),
+        if kind == "enn":
+            print("SMOTEENN")
+            steps = [("Resample", SMOTEENN(smote=SMOTE(kind=kind, svm_estimator=SVC(kernel='rbf', C=10, gamma=.01), n_jobs=8, random_state=0))),
                      ("SVC", SVC(C=10, kernel='rbf', gamma=.01, random_state=0))]
         else:
-            print(kind)
-            steps = [("Resample", SMOTE(kind=kind, n_jobs=8, random_state=0)),
+            print("SmoteTomek")
+            steps = [("Resample", SMOTETomek(smote=SMOTE(kind=kind, svm_estimator=SVC(kernel='rbf', C=10, gamma=.01), n_jobs=8, random_state=0))),
                      ("SVC", SVC(C=10, kernel='rbf', gamma=.01, random_state=0))]
 
         # clfs = [Pipeline(steps1), Pipeline(steps2)]
