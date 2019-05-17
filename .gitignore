@@ -7,4 +7,13 @@ vpt/notes
 results*.pdf
 *__pycache__/
 vpt2_py3/
+*.wav
+core*
+tmp.npy
+vpt/utils/data_scripts/*.npy
 py3_vpt/
+*~
+.ipynb_checkpoints/
+*.npz
+*.pkl
+*.jpg

@@ -13,6 +13,10 @@ class HandGenerator():
         self._annotations = annotations
 
 
+    def size(self):
+        return len(self._stream.get_fpaths())
+
+
     def hand_generator(self, debug=False):
 
         for img, fpath in self._img_gen:
@@ -24,7 +28,7 @@ class HandGenerator():
 
                 yield self._detector.detect_hands(img, fpath, labels)
             except ValueError as e:
-                print "Error in Hand Generator:", e.message
-            except Exception as e:
-                if debug:
-                    print "Error in Hand Generator:", e
+                print ("Error in Hand Generator:", e)
+            # except Exception as e:
+            #     if debug:
+            #         print ("DEBUG: Error in Hand Generator:", e)

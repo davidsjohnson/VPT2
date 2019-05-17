@@ -15,9 +15,12 @@ class SubSegmentationModel():
         self.kernel     = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
 
 
-    def initialize(self, background_folder, ext="bin", history=100, varThreshold=.1, shadowDetection=False):
+    def initialize(self, background_folder, ext="bin", history=100, varThreshold=.9, shadowDetection=False):
 
-        self.fgbg = cv2.BackgroundSubtractorMOG2(history, varThreshold, shadowDetection)
+        if cv2.__version__ < '3.0':
+            self.fgbg = cv2.BackgroundSubtractorMOG2(history, varThreshold, shadowDetection)
+        else:
+            self.fgbg = cv2.createBackgroundSubtractorMOG2(history, varThreshold, shadowDetection)
 
         for root, dirs, files in os.walk(background_folder):
             for fname in files:
@@ -27,7 +30,7 @@ class SubSegmentationModel():
                         data = load_depthmap(fpath)
                         self.fgbg.apply(data)
                     except Exception as e:
-                        print e
+                        print (e)
 
         self.initialized = True
 

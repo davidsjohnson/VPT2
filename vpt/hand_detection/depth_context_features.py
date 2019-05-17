@@ -1,3 +1,6 @@
+import sys
+import math
+sys.path.append("./")
 from vpt.common import *
 import vpt.settings as s
 
@@ -9,6 +12,33 @@ import time
 # http://ieeexplore.ieee.org/abstract/document/6740010/
 
 def generate_feature_offsets(M, radius):
+
+    ratio = .2
+
+
+    c0 = M / (radius + (ratio - 1) * radius / 2)
+    k = (ratio - 1) * c0 / radius
+
+    feature_offsets = []
+
+    for i in range(-M, M+1):
+        for j in range(-M, M+1):
+
+            si = 1 if i > 0 else -1
+            sj = 1 if j > 0 else -1
+            vi = abs(1.0 * i)
+            vj = abs(1.0 * j)
+            if (i == 0 and j == 0):
+                continue
+
+            x = sj * (-c0 + math.sqrt(c0 * c0 + 4 * vj * k / 2)) / k
+            y = si * (-c0 + math.sqrt(c0 * c0 + 4 * vi * k / 2)) / k
+
+            feature_offsets.append([x, y, 0])
+
+    return np.array(feature_offsets)
+
+def generate_feature_offsets_non(M, radius):
     '''
         Generates offset points in real world space for depth
         context features from a given point.
@@ -30,7 +60,7 @@ def generate_feature_offsets(M, radius):
             feature_point = [x, y, 0]
             feature_offsets.append(feature_point)
 
-    return feature_offsets
+    return np.array(feature_offsets)
 
 
 def calc_features(depth_map, offsets, sample_mask = None):
@@ -58,10 +88,10 @@ def calc_features(depth_map, offsets, sample_mask = None):
     features[pixels[:, :, 1] == -1] = 0
     features[pixels[:, :, 0] == -1] = 0
 
-    return features
+    return features, pixels
 
 
-def points2pixels(points):
+def points2pixels(points, depth_data=False):
 
     if s.sensor == "kinect":
         f = 525.5
@@ -96,7 +126,10 @@ def points2pixels(points):
     pixels[:, :, 0] = points_x * f + px_d
     pixels[:, :, 1] = points_y * f + py_d
 
-    return pixels[:, :, :2]
+    if not depth_data:
+        return pixels[:, :, :2]
+    else:
+        return pixels[:, :, :2], pixels[:, :, 2:]
 
 
 def pixels2points(depth_map, sample_mask):
@@ -143,3 +176,19 @@ def pixels2points(depth_map, sample_mask):
     y = z * y
 
     return np.moveaxis(np.concatenate((x, y, z)), 0, 1)
+
+
+def plot_offsets(offsets):
+
+    plt.scatter(offsets[:, 0], offsets[:, 1])
+    plt.show()
+
+if __name__ == '__main__':
+
+    # x = np.linspace(0,10, 1000)
+    # y = g(x)
+    # plt.plot(x, y)
+    # plt.show()
+
+    offsets = generate_feature_offsets(4, .1)
+    plot_offsets(offsets)

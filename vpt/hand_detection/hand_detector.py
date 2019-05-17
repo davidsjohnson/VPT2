@@ -1,6 +1,5 @@
 import cv2
 
-from vpt.hand_detection.rdf_segmentation_model_old import *
 from vpt.hand_detection.sub_segmentation_model import *
 from vpt.hand_detection.hand import Hand
 
@@ -53,7 +52,10 @@ class HandDetector():
 
     def get_bounding_box(self, mask):
 
-        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        if cv2.__version__ < '3.0':
+            contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        else:
+            img, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         max_area = 0
         max_rect = None

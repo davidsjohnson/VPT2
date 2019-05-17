@@ -6,6 +6,7 @@ import shutil
 from vpt.streams.file_stream import *
 from vpt.streams.refset_stream import *
 import vpt.utils.image_processing as ip
+import vpt.settings
 
 import matplotlib.pyplot as plt
 
@@ -34,14 +35,14 @@ def create_masks(fs):
     fgen = fs.img_generator()
 
     lower_red = np.array([0, 200, 200])
-    upper_red = np.array([2, 255, 255])
+    upper_red = np.array([5, 255, 255])
 
     lower_blue = np.array([110, 200, 200])
     upper_blue = np.array([120, 255, 255])
 
     for img, fname in fgen:
 
-        temp = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+        temp = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         maskLH = cv2.inRange(temp, lower_blue, upper_blue)
         maskRH = cv2.inRange(temp, lower_red, upper_red)
 
@@ -63,7 +64,7 @@ def create_masks(fs):
         # plt.show()
 
         if not os.path.exists(newfolder):
-            os.mkdir(newfolder)
+            os.makedirs(newfolder)
 
         np.save(maskpath, mask)
 
@@ -81,8 +82,9 @@ def load_masks(fs):
         file_num = temp[-1][:6]
 
         og_path = os.path.join(base_folder, participant, exercise, file_num+".bin")
-        color_path = os.path.join("data/rdf", participant, "cae_masks/og", exercise, file_num+".bmp")
+        color_path = os.path.join("data/rdf", participant, "test_masks/og", exercise, file_num+".bmp")
 
+        print (color_path)
         dmap_rgb = load_depthmap(color_path)
 
         # dmap_rgb = (ip.normalize(dmap) * 255).astype('uint8')
@@ -97,7 +99,6 @@ def load_masks(fs):
         dmap_rgb[:, :, 1][np.where(mask[:, :, 1] == 255)] = 255
         dmap_rgb[:, :, 0][np.where(mask[:, :, 1] == 255)] = 0
         dmap_rgb[:, :, 2][np.where(mask[:, :, 1] == 255)] = 0
-
 
         # lh_dmap = np.bitwise_and(dmap, mask[:, :, 0])
         # rh_dmap = np.bitwise_and(dmap, mask[:, :, 1])
@@ -129,7 +130,7 @@ def retrieve_color(filelist, ref_type="seq"):
         newfile = os.path.join(newpath, file)
 
         if not os.path.exists(newpath):
-            os.mkdir(newpath)
+            os.makedirs(newpath)
 
         shutil.copy(fullpath, newfile)
 
@@ -157,26 +158,27 @@ def generate_random_filelist(fs, size):
 
 if __name__ == "__main__":
 
-    #
-    # folder = "data/posture/p4/"
-    # annotation_file = "data/posture/p4/annotations.txt"
-    # fs = FileStream(folder, ftype="jpg", annotations=load_annotations(annotation_file, debug=True), ignore=True)
-    # #
-    # # filelist = generate_sequential_filelist(fs, 10)
-    # # filelist = np.load("data/rdf/p4/cae_masks/reference_set_p4_.00625_0929.npy")
-    # filelist = generate_random_filelist(fs, 400)
-    # print ("Generated Filelist Shape: ", filelist.shape)
-    #
-    # retrieve_color(filelist, ref_type="test")
+    s.sensor = "realsense"
 
-    # folder = "data/rdf/p4/cae_masks/masks"
-    # annotation_file = "data/posture/p4/annotations.txt"
-    # fs = FileStream(folder, ftype=".jpg", annotations=load_annotations(annotation_file, debug=True), ignore=True)
-    #
-    # create_masks(fs)
-
-    folder = "data/rdf/p4/cae_masks/masks/"
+    folder = "data/posture/p4/"
     annotation_file = "data/posture/p4/annotations.txt"
-    fs = FileStream(folder, ftype=".npy", annotations=load_annotations(annotation_file, debug=True), ignore=True)
-
-    load_masks(fs)
+    fs = FileStream(folder, ftype="bin", annotations=load_annotations(annotation_file, debug=True), ignore=True)
+    #
+    filelist = generate_sequential_filelist(fs, 30)
+    # filelist = np.load("data/rdf/p4/cae_masks/reference_set_p4_.00625_0929.npy")
+    # filelist = generate_random_filelist(fs, 400)
+    print ("Generated Filelist Shape: ", filelist.shape)
+    #
+    retrieve_color(filelist, ref_type="seq")
+    #
+    # vpt.settings.sensor = 'realsense'
+    # folder = "data/rdf/p6"
+    # fs = FileStream(folder, ftype="jpg")
+    # #
+    # create_masks(fs)
+    #
+    # folder = "data/rdf/p4/test_masks/masks/"
+    # annotation_file = "data/posture/p4/annotations.txt"
+    # fs = FileStream(folder, ftype=".npy", annotations=load_annotations(annotation_file, debug=True), ignore=True)
+    #
+    # load_masks(fs)
