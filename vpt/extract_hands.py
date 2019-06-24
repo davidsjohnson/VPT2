@@ -1,3 +1,6 @@
+import sys
+sys.path.append("./")
+
 import vpt.settings as s
 import vpt.hand_detection.depth_context_features as dcf
 from vpt.common import *

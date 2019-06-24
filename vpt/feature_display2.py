@@ -1,3 +1,6 @@
+import sys
+sys.path.append("./")
+
 import vpt.settings as s
 import vpt.hand_detection.depth_context_features as dcf
 from vpt.common import *
@@ -107,4 +110,4 @@ X_rh = np.array(X_rh)
 y_rh = np.array(y_rh)
 filenames = np.array(filenames)
 
-save_data(X_lh, y_lh, vis_lhs, X_rh, y_rh, vis_rhs, filenames, M, radius, feature_type, data_type=data_type, participants="all_participants")
+# save_data(X_lh, y_lh, vis_lhs, X_rh, y_rh, vis_rhs, filenames, M, radius, feature_type, data_type=data_type, participants="all_participants")

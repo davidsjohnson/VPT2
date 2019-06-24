@@ -24,7 +24,7 @@ def hog(img, visualise=False, pixels_per_cell=(6,6), cells_per_block=(3,3), bloc
             x_dif = img_size[1] - img.shape[1]
             img = pad(img, ((y_dif, 0), (x_dif, 0)), mode='constant')
 
-        return skhog(img, orientations=9, pixels_per_cell=pixels_per_cell, cells_per_block=cells_per_block, block_norm=block_norm, visualise=visualise)
+        return skhog(img, orientations=9, pixels_per_cell=pixels_per_cell, cells_per_block=cells_per_block, block_norm=block_norm, visualise=visualise, transform_sqrt=True, multichannel=False)
 
 
 def sliced_hog(img, n_slices=20, visualise=False, cells_per_block=(1,1), block_norm="L1-sqrt"):
@@ -210,7 +210,7 @@ def extract_features(img, xtype, n_slices=20, visualise=False, hand="lh"):
     elif xtype == "shog3":
         return sliced_hog(img, n_slices=n_slices, visualise=visualise, cells_per_block=(1, 4), block_norm="L1-sqrt")
     elif xtype == "hog":
-        return hog(img, visualise=visualise, pixels_per_cell=(16,16), cells_per_block=(1,1))
+        return hog(img, visualise=visualise, pixels_per_cell=(16,16), cells_per_block=(1,1), block_norm="L1-sqrt")
     elif xtype == "hog2":
         return hog(img, visualise=visualise, pixels_per_cell=(16,16), cells_per_block=(2, 2), block_norm="L1-sqrt")
     elif xtype == "hog3":
@@ -228,7 +228,7 @@ def extract_features(img, xtype, n_slices=20, visualise=False, hand="lh"):
     elif xtype == 'honv2':
         return honv(img, pixels_per_cell=(19, 13), num_bins=9, img_size=(190, 130), pad_img=True)
     elif xtype == 'exp1-hog':
-        return hog(img, pixels_per_cell=(8,8), cells_per_block=(3,3), block_norm="L1-sqrt", img_size=(128, 128), pad_img=False)
+        return hog(img, pixels_per_cell=(8,8), cells_per_block=(3,3), block_norm="L1-sqrt", img_size=(128, 128), pad_img=False, visualise=visualise)
     elif xtype == 'exp2-hog':
         return hog(img, pixels_per_cell=(8,8), cells_per_block=(3,3), block_norm="L1-sqrt", img_size=(160, 90), pad_img=False)
     elif xtype == 'exp3-hog':
@@ -244,6 +244,6 @@ def extract_features(img, xtype, n_slices=20, visualise=False, hand="lh"):
     elif xtype == 'exp4-honv':
         return honv(img, pixels_per_cell=(8,8), cells_per_block=(3,3), block_norm="L1-sqrt", img_size=(96, 96), pad_img=False)
     elif xtype == 'test':
-        return hog(img, pixels_per_cell=(4,4), cells_per_block=(3,3), block_norm="L1-sqrt", img_size=(80, 45), pad_img=False)
+        return hog(img, pixels_per_cell=(6,6), cells_per_block=(3,3), block_norm="L1-sqrt", img_size=(128, 128), pad_img=False, visualise=visualise)
     else:
         raise Exception("Invalid Feature Type:", xtype)

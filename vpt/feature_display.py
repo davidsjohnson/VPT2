@@ -1,3 +1,6 @@
+import sys
+sys.path.append("./")
+
 import vpt.settings as s
 import vpt.hand_detection.depth_context_features as dcf
 import vpt.hand_detection.depth_image_features as dif
@@ -21,17 +24,17 @@ vis_rhs = []
 filenames = []
 
 # RDF Parameters
-M = 100
+M = 5
 radius = .15
 
 # Posture Detection Parameters
-feature_type = "shog"
+feature_type = "test"
 
 
 def save_data(X_lh, y_lh, X_rh, y_rh, filenames, M, radius, feature_type, data_type):
     base = "data/posture/extracted/"
 
-    data_path = os.path.join(base, "{}_M{}_rad{:0.2f}_{}_".format("all_participants2-noblock", M, radius, feature_type))
+    data_path = os.path.join(base, "{}_M{}_rad{:0.2f}_{}_".format("all_participants-new-", M, radius, feature_type))
     np.savez_compressed(data_path + data_type + "_data.npz", X_lh=X_lh, y_lh=y_lh, X_rh=X_rh, y_rh=y_rh,
                         filenames=filenames)
 
@@ -62,7 +65,7 @@ def data_gen():
     s.sensor = "realsense"
 
     participants = ["p1", "p3", "p4", "p6"]
-    posture_folders = {p: os.path.join("data\\posture", p) for p in participants}
+    posture_folders = {p: os.path.join("data/posture", p) for p in participants}
 
     annotation_file = "data/posture/annotations.txt"
 
@@ -156,4 +159,4 @@ X_rh = np.array(X_rh)
 y_rh = np.array(y_rh)
 filenames = np.array(filenames)
 
-save_data(X_lh, y_lh, X_rh, y_rh, filenames, M, radius, feature_type, data_type="train")
+# save_data(X_lh, y_lh, X_rh, y_rh, filenames, M, radius, feature_type, data_type="train")
