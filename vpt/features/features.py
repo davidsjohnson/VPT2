@@ -244,6 +244,6 @@ def extract_features(img, xtype, n_slices=20, visualise=False, hand="lh"):
     elif xtype == 'exp4-honv':
         return honv(img, pixels_per_cell=(8,8), cells_per_block=(3,3), block_norm="L1-sqrt", img_size=(96, 96), pad_img=False)
     elif xtype == 'test':
-        return hog(img, pixels_per_cell=(6,6), cells_per_block=(3,3), block_norm="L1-sqrt", img_size=(128, 128), pad_img=False, visualise=visualise)
+        return hog(img, pixels_per_cell=(6,6), cells_per_block=(2,2), block_norm="L1-sqrt", img_size=(128, 128), pad_img=False, visualise=visualise)
     else:
         raise Exception("Invalid Feature Type:", xtype)
