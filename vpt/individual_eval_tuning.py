@@ -16,7 +16,7 @@ from vpt.common import *
 def load_data(testing_p, M, radius, feature_type, data_type):
     base = "data/posture/extracted/"
     data_path = os.path.join(base, "{}_M{}_rad{:0.2f}_{}_".format(testing_p, M, radius, feature_type))
-    data = np.load(data_path + data_type + "_data_combined.npz")
+    data = np.load(data_path + data_type + "-new_data_combined.npz")
     return data
 
 
@@ -214,15 +214,15 @@ if __name__ == '__main__':
     block_size = (1,1)
 
     exp_num = 0
-    exp_name = "tuning"
+    exp_name = "defense"
 
-    feature_type = "f_{}-c_{}-b_{}".format(feature, cell_size[0], block_size[0])
-
+    # feature_type = "f_{}-c_{}-b_{}".format(feature, cell_size[0], block_size[0])
+    feature_type = "test"
     # cv = cross_validate_exercises
     # exercises = ["a", "b", "c", "d", "e"]
 
 
-    steps = [("SVC", SVC())]
+    steps = [("SVC", SVC(C=10, kernel="linear", decision_function_shape='ovr', probability=False))]
 
     # clfs = [Pipeline(steps1), Pipeline(steps2)]
     # pos = (0, 1)

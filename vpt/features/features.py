@@ -24,7 +24,7 @@ def hog(img, visualise=False, pixels_per_cell=(6,6), cells_per_block=(3,3), bloc
             x_dif = img_size[1] - img.shape[1]
             img = pad(img, ((y_dif, 0), (x_dif, 0)), mode='constant')
 
-        return skhog(img, orientations=9, pixels_per_cell=pixels_per_cell, cells_per_block=cells_per_block, block_norm=block_norm, visualise=visualise, transform_sqrt=True, multichannel=False)
+        return skhog(img, orientations=9, pixels_per_cell=pixels_per_cell, cells_per_block=cells_per_block, block_norm=block_norm, visualise=visualise, transform_sqrt=False, multichannel=False)
 
 
 def sliced_hog(img, n_slices=20, visualise=False, cells_per_block=(1,1), block_norm="L1-sqrt"):

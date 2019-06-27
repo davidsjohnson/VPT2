@@ -1,3 +1,6 @@
+import sys
+sys.path.append("./")
+
 import vpt.settings as s
 import vpt.hand_detection.depth_context_features as dcf
 from vpt.common import *
@@ -14,7 +17,7 @@ def data_gen():
     s.participant = "all"
     s.sensor = "realsense"
 
-    participants = ["p6"]
+    participants = ["p4"]
     posture_folders = {p: os.path.join("data/posture", p) for p in participants}
     ftype = ".bin"
 
